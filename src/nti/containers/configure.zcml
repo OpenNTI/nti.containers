@@ -1,0 +1,27 @@
+<!-- -*- mode: nxml -*- -->
+<configure	xmlns="http://namespaces.zope.org/zope"
+			xmlns:i18n="http://namespaces.zope.org/i18n"
+			xmlns:zcml="http://namespaces.zope.org/zcml">
+
+	<include package="zope.component" file="meta.zcml" />
+	<include package="zope.security" file="meta.zcml" />
+	<include package="zope.component" />
+	<include package="zope.security" />
+
+	<include package="zope.container" />
+	<include package="zope.dublincore" />
+	<include package="zope.annotation" />
+
+	<!-- Subscribers -->
+	<subscriber handler=".subscribers.update_container_modified_time" />
+
+	<!-- 
+	TODO: We are relying on registration order. Make sure that's kosher. 
+	-->
+	<subscriber handler=".subscribers.update_object_modified_time" />
+	<subscriber handler=".subscribers.update_parent_modified_time" />
+
+	<!-- Adapters -->
+	<adapter factory=".containers.IdGeneratorNameChooser" />
+
+</configure>
