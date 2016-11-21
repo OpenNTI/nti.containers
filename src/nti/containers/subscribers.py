@@ -9,23 +9,18 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-from zope import component
-
 from zope.container.interfaces import IContainerModifiedEvent
 
-from zope.lifecycleevent.interfaces import IObjectModifiedEvent
-
-from nti.coremetadata.interfaces import ILastModified
-
-@component.adapter(ILastModified, IContainerModifiedEvent)
 def update_container_modified_time(container, event):
 	"""
 	Register this handler to update modification times when a container is
 	modified through addition or removal of children.
 	"""
-	container.updateLastMod()
+	try:
+		container.updateLastMod()
+	except AttributeError:
+		pass
 
-@component.adapter(ILastModified, IObjectModifiedEvent)
 def update_parent_modified_time(modified_object, event):
 	"""
 	If an object is modified and it is contained inside a container
@@ -43,7 +38,6 @@ def update_parent_modified_time(modified_object, event):
 	except AttributeError:
 		pass
 
-@component.adapter(ILastModified, IObjectModifiedEvent)
 def update_object_modified_time(modified_object, event):
 	"""
 	Register this handler to update modification times when an object

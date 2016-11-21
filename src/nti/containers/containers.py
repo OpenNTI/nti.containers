@@ -53,8 +53,6 @@ from zope.site.site import SiteManagerContainer
 
 from ZODB.interfaces import IBroken
 
-from nti.coremetadata.interfaces import ILastModified
-
 from nti.dublincore.time_mixins import DCTimesLastModifiedMixin
 
 from nti.ntiids import ntiids
@@ -274,7 +272,7 @@ except ImportError:
 		"""
 # Last modified based containers
 
-@interface.implementer(ILastModified, IAttributeAnnotatable)
+@interface.implementer(IAttributeAnnotatable)
 class LastModifiedBTreeContainer(DCTimesLastModifiedMixin,
 								 BTreeContainer,
 								 PersistentPropertyHolder):

@@ -2,9 +2,6 @@ import codecs
 from setuptools import setup, find_packages
 
 entry_points = {
-	'console_scripts': [
-		"nti_contentlibrary_indexer = nti.contentlibrary.scripts.constructor:main",
-	],
 }
 
 TESTS_REQUIRE = [

@@ -1,6 +1,6 @@
 [run]
 source = src/nti/
-omit = src/nti/solr/tests/*
+omit = src/nti/containers/tests/*
 
 [report]
 # Coverage is run on Linux under cPython 2 and 3,
