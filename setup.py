@@ -46,11 +46,11 @@ setup(
 	tests_require=TESTS_REQUIRE,
 	install_requires=[
 		'setuptools',
+		'awesome-slugify',
 		'nti.dublincore',
 		'nti.ntiids',
 		'nti.zodb',
 		'repoze.lru',
-		'slugify',
 		'ZODB',
 		'zope.annotation',
 		'zope.component',
