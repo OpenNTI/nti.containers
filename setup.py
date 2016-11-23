@@ -46,7 +46,7 @@ setup(
 	tests_require=TESTS_REQUIRE,
 	install_requires=[
 		'setuptools',
-		'nti.dublincore'
+		'nti.dublincore',
 		'nti.ntiids',
 		'nti.zodb',
 		'repoze.lru',
