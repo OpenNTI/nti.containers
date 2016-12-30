@@ -676,6 +676,7 @@ class CaseInsensitiveCheckingLastModifiedBTreeContainer(_CheckObjectOnSetMixin,
 														CaseInsensitiveLastModifiedBTreeContainer):
 	pass
 
+# Containers specialized to work with intids.
 # Make pylint not complain about "badly implemented container", "Abstract class not referenced"
 # pylint: disable=R0924,R0921
 
