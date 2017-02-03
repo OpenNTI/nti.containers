@@ -349,6 +349,12 @@ class LastModifiedBTreeContainer(DCTimesLastModifiedMixin,
 		for k in list(self.keys()):
 			del self[k]
 
+	def maxKey(self):
+		return self._SampleContainer__data.maxKey(max)
+
+	def minKey(self):
+		return self._SampleContainer__data.minKey(max)
+	
 	def _delitemf(self, key, event=True):
 		# make sure our lazy property gets set
 		l = self._BTreeContainer__len
