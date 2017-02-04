@@ -76,6 +76,8 @@ from nti.containers.common import discard_p
 
 from nti.dublincore.time_mixins import DCTimesLastModifiedMixin
 
+from nti.externalization.interfaces import StandardExternalFields
+
 from nti.externalization.representation import make_repr
 
 from nti.ntiids import ntiids
@@ -88,6 +90,8 @@ from nti.zodb.minmax import NumericMaximum
 from nti.zodb.minmax import NumericPropertyDefaultingToZero
 
 from nti.zodb.persistentproperty import PersistentPropertyHolder
+
+LAST_MODIFIED = StandardExternalFields.LAST_MODIFIED
 
 # BTree containers
 
@@ -106,8 +110,7 @@ class _IdGenerationMixin(object):
     #: The integer counter for generated ids.
     _v_nextid = 0
 
-    def generateId(self, prefix='item', suffix='', 
-                   rand_ceiling=999999999, _nextid=None):
+    def generateId(self, prefix='item', suffix='', rand_ceiling=999999999, _nextid=None):
         """
         Returns an (string) ID not used yet by this folder. Use this method directly
         if you have no client-supplied name to use as a base. (If you have a meaningful
@@ -125,7 +128,7 @@ class _IdGenerationMixin(object):
         while True:
             if n % 4000 != 0 and n <= rand_ceiling:
                 the_id = '%s%d%s' % (prefix, n, suffix)
-                if the_id not in tree:
+                if not tree.has_key(the_id):
                     break
             n = randint(1, rand_ceiling)
             attempt = attempt + 1
@@ -400,8 +403,7 @@ class LastModifiedBTreeContainer(DCTimesLastModifiedMixin,
     def itervalues(self, min=None, max=None, excludemin=False, excludemax=False):
         if max is None or min is None:
             return self.values(min)
-        return self._SampleContainer__data.values(
-            min, max, excludemin, excludemax)
+        return self._SampleContainer__data.values(min, max, excludemin, excludemax)
 
     def iterkeys(self, min=None, max=None, excludemin=False, excludemax=False):
         if max is None or min is None:
@@ -519,8 +521,7 @@ class NOOwnershipLastModifiedBTreeContainer(EventlessLastModifiedBTreeContainer)
         if not self._checkSame(key, value):
             value = self._transform(value)
             self._setitemf(key, value)
-            # pass self as container so value object can get a connection if
-            # available
+            # pass self as container so value object can get a connection if available
             lifecycleevent.added(value, self, key)
             notifyContainerModified(self)
 
@@ -623,7 +624,7 @@ class CaseInsensitiveLastModifiedBTreeContainer(LastModifiedBTreeContainer):
             try:
                 yield k.key
             except AttributeError:  # pragma: no cover
-                if k == 'Last Modified':
+                if k == LAST_MODIFIED:
                     continue
                 yield k
 
@@ -661,7 +662,7 @@ class CaseInsensitiveLastModifiedBTreeContainer(LastModifiedBTreeContainer):
             try:
                 yield k.key, v
             except AttributeError:  # pragma: no cover
-                if k == 'Last Modified':
+                if k == LAST_MODIFIED:
                     continue
                 yield k, v
 
