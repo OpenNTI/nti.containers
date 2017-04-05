@@ -249,10 +249,6 @@ class TestContainers(unittest.TestCase):
         with assert_raises(KeyError):
             c['key'] = value2
 
-        # We cannot add None values or non-unicode keys
-        with assert_raises(TypeError):
-            c['key2'] = None
-
         with assert_raises(TypeError):
             c[None] = value
 

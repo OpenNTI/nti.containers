@@ -45,8 +45,6 @@ from zope.container.btree import BTreeContainer
 from zope.container.contained import Contained
 from zope.container.contained import NameChooser
 from zope.container.contained import uncontained
-from zope.container.contained import ContainedProxy
-from zope.container.contained import notifyContainerModified
 
 from zope.container.interfaces import INameChooser
 from zope.container.interfaces import IBTreeContainer
@@ -56,7 +54,6 @@ from zope.container.constraints import checkObject
 from zope.intid.interfaces import IIntIds
 
 from zope.location.interfaces import ILocation
-from zope.location.interfaces import IContained
 from zope.location.interfaces import ISublocations
 
 from zope.site.interfaces import IFolder
@@ -73,6 +70,8 @@ import BTrees
 from BTrees.Length import Length
 
 from nti.containers.common import discard_p
+from nti.containers.contained import no_ownership_setitem
+from nti.containers.contained import no_ownership_uncontained
 
 from nti.dublincore.time_mixins import DCTimesLastModifiedMixin
 
@@ -468,7 +467,6 @@ class EventlessLastModifiedBTreeContainer(LastModifiedBTreeContainer):
 
     def __setitem__(self, key, value):
         __traceback_info__ = key, value
-
         self._checkKey(key)
         self._checkValue(value)
         if not self._checkSame(key, value):
@@ -494,10 +492,9 @@ class EventlessLastModifiedBTreeContainer(LastModifiedBTreeContainer):
         return result
 
 
-class NOOwnershipLastModifiedBTreeContainer(EventlessLastModifiedBTreeContainer):
+class NOOwnershipLastModifiedBTreeContainer(LastModifiedBTreeContainer):
     """
-    A BTreeContainer that only broadcast added, removed and container modified events
-    but does not take ownership of the objects
+    A BTreeContainer that does not take ownership of the objects
     """
 
     def clear(self, event=True):
@@ -507,29 +504,16 @@ class NOOwnershipLastModifiedBTreeContainer(EventlessLastModifiedBTreeContainer)
             else:
                 self._delitemf(k, event=False)
 
-    def _transform(self, value):
-        if not IContained.providedBy(value):
-            if ILocation.providedBy(value):
-                interface.alsoProvides(value, IContained)
-            else:
-                value = ContainedProxy(value)
-        return value
-
     def __setitem__(self, key, value):
-        self._checkKey(key)
-        self._checkValue(value)
-        if not self._checkSame(key, value):
-            value = self._transform(value)
-            self._setitemf(key, value)
-            # pass self as container so value object can get a connection if available
-            lifecycleevent.added(value, self, key)
-            notifyContainerModified(self)
+        no_ownership_setitem(self, self._setitemf, key, value)
 
     def __delitem__(self, key):
-        value = self[key]
-        self._delitemf(key, event=False)
-        lifecycleevent.removed(value, self, key)
-        notifyContainerModified(self)
+        # make sure our lazy property gets set
+        l = self._BTreeContainer__len
+        item = self._SampleContainer__data[key]
+        del self._SampleContainer__data[key]
+        l.change(-1)
+        no_ownership_uncontained(item, self, key)
 
 
 # Case insensitive containers
