@@ -47,6 +47,7 @@ setup(
 		'setuptools',
 		'awesome-slugify',
 		'BTrees',
+		'nti.base',
 		'nti.dublincore',
 		'nti.externalization',
 		'nti.ntiids',
