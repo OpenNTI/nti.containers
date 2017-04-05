@@ -69,6 +69,8 @@ from persistent import Persistent
 import BTrees
 from BTrees.Length import Length
 
+from nti.base._compat import unicode_
+
 from nti.containers.common import discard_p
 from nti.containers.contained import no_ownership_setitem
 from nti.containers.contained import no_ownership_uncontained
@@ -159,8 +161,8 @@ class IdGeneratorNameChooser(NameChooser):
         # allow
         if not name:
             # use __class__, not type(), to work with proxies
-            name = unicode(obj.__class__.__name__)
-        name = unicode(name)  # throw if conversion doesn't work
+            name = unicode_(obj.__class__.__name__)
+        name = unicode_(name)  # throw if conversion doesn't work
         name = name.strip()  # no whitespace
         # remove bad characters
         name = name.replace('/', '.').lstrip('+@')
@@ -446,7 +448,7 @@ class EventlessLastModifiedBTreeContainer(LastModifiedBTreeContainer):
         # Containers don't allow None; keys must be unicode
         if isinstance(key, str):
             try:
-                key = unicode(key)
+                key = unicode_(key)
             except UnicodeError:
                 raise TypeError('Key could not be converted to unicode')
         elif not isinstance(key, unicode):
@@ -534,7 +536,7 @@ class _CaseInsensitiveKey(object):
         if not isinstance(key, basestring):
             raise TypeError("Expected basestring instead of %s (%r)" %
                             (type(key), key))
-        self.key = unicode(key)
+        self.key = unicode_(key)
         self._lower_key = self.key.lower()
 
     def __str__(self):  # pragma: no cover
