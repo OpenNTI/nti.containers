@@ -59,6 +59,7 @@ setup(
 		'zope.cachedescriptors',
 		'zope.component',
 		'zope.container',
+		'zope.deferredimport',
 		'zope.dublincore',
 		'zope.interface',
 		'zope.intid',

@@ -25,8 +25,8 @@ from zope.container.contained import Contained as ZContained
 
 from nti.base.interfaces import ILastModified
 
-from nti.containers.containers import IntidContainedStorage
-from nti.containers.containers import IntidResolvingMappingFacade
+from nti.containers.datastructures import IntidContainedStorage
+from nti.containers.datastructures import IntidResolvingMappingFacade
 
 from nti.dublincore.datastructures import CreatedModDateTrackingObject
 
