@@ -13,30 +13,25 @@
 	<include package="zope.annotation" />
 
 	<!-- Subscribers -->
-	<configure zcml:condition="installed nti.coremetadata">
-		<class class="nti.containers.containers.LastModifiedBTreeContainer">
-			<implements interface="nti.coremetadata.interfaces.ILastModified" />
-		</class>
-	</configure>
+	<class class="nti.containers.containers.LastModifiedBTreeContainer">
+		<implements interface="nti.base.interfaces.ILastModified" />
+	</class>
 
 	<!-- Subscribers -->
-	<configure zcml:condition="installed nti.coremetadata">
-		<subscriber handler=".subscribers.update_container_modified_time"
-					for="nti.coremetadata.interfaces.ILastModified
-				 		 zope.container.interfaces.IContainerModifiedEvent"/>
+	<subscriber handler=".subscribers.update_container_modified_time"
+				for="nti.base.interfaces.ILastModified
+			 		 zope.container.interfaces.IContainerModifiedEvent"/>
 			
-		<!-- 
-		TODO: We are relying on registration order. Make sure that's kosher. 
-		-->
-		<subscriber handler=".subscribers.update_object_modified_time"
-					for="nti.coremetadata.interfaces.ILastModified
-				 		 zope.lifecycleevent.interfaces.IObjectModifiedEvent"/>
+	<!-- 
+	TODO: We are relying on registration order. Make sure that's kosher. 
+	-->
+	<subscriber handler=".subscribers.update_object_modified_time"
+				for="nti.base.interfaces.ILastModified
+			 		 zope.lifecycleevent.interfaces.IObjectModifiedEvent"/>
 
-		<subscriber handler=".subscribers.update_parent_modified_time"
-					for="nti.coremetadata.interfaces.ILastModified
-				 		 zope.lifecycleevent.interfaces.IObjectModifiedEvent"/>
-
-	</configure>
+	<subscriber handler=".subscribers.update_parent_modified_time"
+				for="nti.base.interfaces.ILastModified
+			 		 zope.lifecycleevent.interfaces.IObjectModifiedEvent"/>
 
 	<!-- Adapters -->
 	<adapter factory=".containers.IdGeneratorNameChooser" />
