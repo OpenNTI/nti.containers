@@ -641,9 +641,8 @@ class CaseInsensitiveLastModifiedBTreeContainer(LastModifiedBTreeContainer):
             return self.keys(min)
         min = _tx_key_insen(min)
         max = _tx_key_insen(max)
-        return (
-			k.key for k in self._SampleContainer__data.keys(min, max, excludemin, excludemax)
-		)
+        container = self._SampleContainer__data
+        return (k.key for k in container.keys(min, max, excludemin, excludemax))
 
     def sublocations(self):
         # We directly implement ISublocations instead of using the adapter for two reasons.
