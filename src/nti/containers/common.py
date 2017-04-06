@@ -10,6 +10,26 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 
+def discard(the_set, the_value):
+    """
+    A version of :meth:`set.discard` that works not just on :class:`set` objects,
+    but also on :class:`BTrees.OOBTree.OOTreeSet` (and the smaller :class:`BTrees.OOBTree.OOSet`,
+    plus the sets in other families). (It incidentally works on lists, though not efficiently.)
+
+    :param set the_set: The :class:`set` or set-like thing.
+    :param the_value: The object to remove from `the_set`. If the object isn't
+            present in the set, no exception will be raised.
+    :return: Undefined.
+    """
+    try:
+        the_set.discard(the_value)  # python sets
+    except AttributeError:
+        try:
+            the_set.remove(the_value)  # BTrees..[Tree]Set. Also, python list
+        except (KeyError, ValueError):
+            pass
+
+
 def discard_p(the_set, the_value):
     """
     A version of :meth:`set.discard` that functions as a predicate by returning
