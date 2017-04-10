@@ -187,8 +187,7 @@ class _LengthIntidResolvingMappingFacade(IntidResolvingMappingFacade):
               self).__init__(*args, **kwargs)
 
     def _wrap(self, key, val):
-        wrapped = super(_LengthIntidResolvingMappingFacade,
-                        self)._wrap(key, val)
+        wrapped = super(_LengthIntidResolvingMappingFacade, self)._wrap(key, val)
         wrapped.lastModified = self.__parent__._get_container_mod_time(key)
         return wrapped
 
@@ -253,8 +252,8 @@ class IntidContainedStorage(Persistent, Contained, Iterable, Container, Sized):
         self._p_activate()
         if '_IntidContainedStorage__moddates' not in self.__dict__:
             return 0
-        return bit64_int_to_time(
-            self.__moddates.get(containerId, ZERO_64BIT_INT))
+        data = self.__moddates.get(containerId, ZERO_64BIT_INT)
+        return bit64_int_to_time(data)
 
     def __len__(self):
         return self.__len()
