@@ -75,7 +75,7 @@ def no_ownership_setitem(container, setitemf, name, obj):
 
     obj, event = noOwnershipContainedEvent(obj, container, name)
     setitemf(name, obj)
-    if event:
+    if event is not None:
         notify(event)
         notifyContainerModified(container)
 
