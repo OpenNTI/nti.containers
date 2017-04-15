@@ -183,8 +183,7 @@ class _LengthIntidResolvingMappingFacade(IntidResolvingMappingFacade):
 
     def __init__(self, *args, **kwargs):
         self._len = kwargs.pop('_len')
-        super(_LengthIntidResolvingMappingFacade,
-              self).__init__(*args, **kwargs)
+        super(_LengthIntidResolvingMappingFacade, self).__init__(*args, **kwargs)
 
     def _wrap(self, key, val):
         wrapped = super(_LengthIntidResolvingMappingFacade, self)._wrap(key, val)
