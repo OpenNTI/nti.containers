@@ -8,6 +8,11 @@ __docformat__ = "restructuredtext en"
 # pylint: disable=W0212,R0904
 
 from hamcrest import is_
+from hamcrest import none
+from hamcrest import is_in
+from hamcrest import is_not
+from hamcrest import has_entry
+from hamcrest import has_length
 from hamcrest import assert_that
 from hamcrest import greater_than
 
@@ -38,8 +43,8 @@ class TestDict(unittest.TestCase):
         c[u'k'] = contained.Contained()
 
         assert_that(c.lastModified, 
-					is_(greater_than(0)),
-    				"__setitem__ should change lastModified")
+                    is_(greater_than(0)),
+                    "__setitem__ should change lastModified")
         # reset
         c.lastModified = 0
         assert_that(c.lastModified, is_(0))
@@ -47,7 +52,7 @@ class TestDict(unittest.TestCase):
         del c[u'k']
 
         assert_that(c.lastModified, 
-					is_(greater_than(0)),
+                    is_(greater_than(0)),
                     "__delitem__ should change lastModified")
 
         # reset
@@ -61,7 +66,7 @@ class TestDict(unittest.TestCase):
         c.pop('k')
 
         assert_that(c.lastModified, 
-					is_(greater_than(0)),
+                    is_(greater_than(0)),
                     "__delitem__ should change lastModified")
 
         with assert_raises(KeyError):
@@ -77,7 +82,7 @@ class TestDict(unittest.TestCase):
         c.lastModified = 0
         c.clear()
         assert_that(c.lastModified, 
-					is_(greater_than(0)),
+                    is_(greater_than(0)),
                     "full clear should change lastModified")
 
         # coverage
@@ -116,3 +121,91 @@ class TestDict(unittest.TestCase):
         assert_that(list(c.itervalues()), is_([child]))
 
         del c[u'upper']
+        
+    def test_ordered_dict(self):
+        d = dicts.OrderedDict()
+        d[u'foo'] = 'bar'
+        assert_that(d, has_length(1))
+        d[u'bar'] = 'baz'
+        assert_that(d, has_length(2))
+        assert_that(d, has_entry('foo', is_('bar')))
+        assert_that(d, has_entry('bar', is_('baz')))
+
+        assert_that(list(d), is_(['foo', 'bar']))
+        
+        d.update({u'bar': 'moo', u'ding': 'dong', u'beep': 'beep'})
+        assert_that(d, has_length(4))
+        
+        assert_that(list(d), is_not(['bar', 'beep', 'ding', 'foo']))
+        
+        d.updateOrder(('bar', 'beep', 'ding', 'foo'))
+        assert_that(list(d.keys()), is_(['bar', 'beep', 'ding', 'foo']))
+  
+        with self.assertRaises(ValueError):
+            d.updateOrder(['bar', 'beep', 'ding'])
+            
+        with self.assertRaises(ValueError):
+            d.updateOrder(['bar', 'beep', 'ding', 'sha', 'foo'])
+            
+        with self.assertRaises(ValueError):
+            d.updateOrder(['bar', 'beep', 'ding', 'sha'])
+            
+        with self.assertRaises(ValueError):
+            d.updateOrder(['bar', 'beep', 'ding', 'ding'])
+        
+        d.update([[u'sha', 'zam'], [u'ka', 'pow']])
+        assert_that(d, has_length(6))
+        
+        assert_that(d, has_entry('ka', is_('pow')))
+        assert_that(list(d.keys()), is_( ['bar', 'beep', 'ding', 'foo', 'sha', 'ka']))
+
+        d.update(left='hook', right='jab')
+        assert_that(d, has_length(8))
+        
+        assert_that(d, has_entry('left', is_('hook')))
+        
+        assert_that(d.pop('sha'), is_('zam'))
+        assert_that(d.pop('ka'), is_('pow'))
+        assert_that(d.pop('left'), is_('hook'))
+        assert_that(d.pop('right'), is_('jab'))
+        
+        assert_that(d, has_length(4))
+        assert_that(list(d.keys()), is_(['bar', 'beep', 'ding', 'foo']))
+        
+        with self.assertRaises(KeyError):
+            d.pop('nonexistent')
+
+        assert_that(d.pop('nonexistent', 42), is_(42))
+        assert_that(d, has_length(4))
+         
+        d.setdefault(u'newly created', 'value')
+        assert_that(d, has_entry('newly created', is_('value')))
+        assert_that(d, has_length(5))
+        
+        del d['newly created']
+        
+        assert_that(list(d.keys()), is_(['bar', 'beep', 'ding', 'foo']))
+        assert_that(list(d.values()), is_(['moo', 'beep', 'dong', 'bar']))
+        assert_that(list(d.items()), 
+                    is_([('bar', 'moo'), ('beep', 'beep'), ('ding', 'dong'), ('foo', 'bar')]))
+        
+        i = iter(d)
+        assert_that(i, is_not(none()))
+        assert_that(d.iterkeys(), is_not(none()))
+        assert_that(d.iteritems(), is_not(none()))
+        assert_that(d.itervalues(), is_not(none()))
+
+        assert_that(d, has_length(4))
+        assert_that(d.popitem(), is_(('bar', 'moo')))
+
+        c = d.copy()
+        assert_that(d.items(), is_(c.items()))
+        
+        d.clear()
+        assert_that(d, has_length(0))
+        assert_that(list(d.keys()), is_([]))
+
+        assert_that(c.has_key('beep'), is_(True))
+        assert_that('BEEP', is_not(is_in(c)))
+        
+        assert_that(c.get('nonexistent', 'default'), is_('default'))

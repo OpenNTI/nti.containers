@@ -21,6 +21,8 @@ from persistent import Persistent
 
 from zope import interface
 
+import zc.blist
+
 from nti.base.interfaces import ILastModified
 
 from nti.containers.containers import _tx_key_insen
@@ -119,28 +121,28 @@ class Dict(Persistent):
         c.update(self._data)
         return c
 
-    def __getitem__(self, key): 
+    def __getitem__(self, key):
         return self._data[key]
 
-    def __iter__(self): 
+    def __iter__(self):
         return iter(self._data)
 
-    def iteritems(self): 
+    def iteritems(self):
         return self._data.iteritems()
 
-    def iterkeys(self): 
+    def iterkeys(self):
         return self._data.iterkeys()
 
-    def itervalues(self): 
+    def itervalues(self):
         return self._data.itervalues()
 
-    def has_key(self, key): 
+    def has_key(self, key):
         return bool(self._data.has_key(key))
 
-    def get(self, key, failobj=None): 
+    def get(self, key, failobj=None):
         return self._data.get(key, failobj)
 
-    def __contains__(self, key): 
+    def __contains__(self, key):
         return self._data.__contains__(key)
 
     def popitem(self):
@@ -149,7 +151,99 @@ class Dict(Persistent):
         except ValueError:
             raise KeyError, 'container is empty'
         return (key, self.pop(key))
-ZC_Dict = Dict # BWC
+
+
+ZC_Dict = Dict  # BWC
+
+
+class OrderedDict(Dict):
+    """An ordered BTree-based dict-like persistent object that can be safely
+    inherited from.
+
+    """
+
+    # what do we get from the superclass:
+    # update, setdefault, __len__, popitem, __getitem__, has_key, __contains__,
+    # get, __delitem__
+
+    def __init__(self, *args, **kwargs):
+        self._order = zc.blist.BList()
+        super(OrderedDict, self).__init__(*args, **kwargs)
+
+    def keys(self):
+        return list(self._order)
+
+    def __iter__(self):
+        return iter(self._order)
+
+    def values(self):
+        return [self._data[key] for key in self._order]
+
+    def items(self):
+        return [(key, self._data[key]) for key in self._order]
+
+    def __setitem__(self, key, value):
+        if key not in self._data:
+            self._order.append(key)
+            self._len.change(1)
+        self._data[key] = value
+
+    def updateOrder(self, order):
+        order = list(order)
+
+        if len(order) != len(self._order):
+            raise ValueError("Incompatible key set.")
+
+        order_set = set(order)
+
+        if len(order) != len(order_set):
+            raise ValueError("Duplicate keys in order.")
+
+        if order_set.difference(self._order):
+            raise ValueError("Incompatible key set.")
+
+        self._order[:] = order
+
+    def clear(self):
+        super(OrderedDict, self).clear()
+        del self._order[:]
+
+    def copy(self):
+        if self.__class__ is OrderedDict:
+            return OrderedDict(self)
+        data = self._data
+        order = self._order
+        try:
+            self._data = BTrees.OOBTree.OOBTree()
+            self._order = zc.blist.BList()
+            c = copy.copy(self)
+        finally:
+            self._data = data
+            self._order = order
+        c.update(self)
+        return c
+
+    def iteritems(self):
+        return ((key, self._data[key]) for key in self._order)
+
+    def iterkeys(self):
+        return iter(self._order)
+
+    def itervalues(self):
+        return (self._data[key] for key in self._order)
+
+    def pop(self, key, *args):
+        try:
+            res = self._data.pop(key)
+        except KeyError:
+            if args:
+                res = args[0]
+            else:
+                raise
+        else:
+            self._len.change(-1)
+            self._order.remove(key)
+        return res
 
 
 @interface.implementer(ILastModified)
@@ -205,7 +299,6 @@ class LastModifiedDict(PersistentPropertyHolder,
     def __delitem__(self, key):
         super(LastModifiedDict, self).__delitem__(key)
         self.updateLastMod()
-
 
 register = getattr(collections.Mapping, "register")
 register(ZC_Dict)
