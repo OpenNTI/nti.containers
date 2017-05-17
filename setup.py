@@ -54,6 +54,7 @@ setup(
 		'nti.zodb',
 		'persistent',
 		'repoze.lru',
+		'zc.blist',
 		'zc.queue',
 		'ZODB',
 		'zope.annotation',
