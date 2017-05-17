@@ -122,6 +122,32 @@ class TestDict(unittest.TestCase):
 
         del c[u'upper']
         
+    def test_minimal_list(self):
+        d = dicts.MinimalList()
+        d.append('ichigo')
+        d.append('aizen')
+        assert_that(d, has_length(2))
+        assert_that(list(d), is_(['ichigo', 'aizen']))
+
+        d.append('rukia')
+        assert_that(d, has_length(3))
+        
+        d.remove('rukia')
+        assert_that(d, has_length(2))
+        
+        with self.assertRaises(ValueError):
+            d.remove('rukia')
+        
+        d.replace(['aizen', 'ichigo', 'zaraki'])
+        assert_that(d, has_length(3))
+        assert_that(list(d), is_(['aizen', 'ichigo', 'zaraki']))
+        
+        d.clear()
+        assert_that(d, has_length(0))
+        
+        d.append('ichigo')
+        assert_that(d, has_length(1))
+
     def test_ordered_dict(self):
         d = dicts.OrderedDict()
         d[u'foo'] = 'bar'

@@ -21,7 +21,9 @@ from persistent import Persistent
 
 from zope import interface
 
-import zc.blist
+from zc.queue import CompositeQueue
+
+from zc.blist import BList
 
 from nti.base.interfaces import ILastModified
 
@@ -149,25 +151,46 @@ class Dict(Persistent):
         try:
             key = self._data.minKey()
         except ValueError:
-            raise KeyError, 'container is empty'
+            raise KeyError('container is empty')
         return (key, self.pop(key))
-
-
 ZC_Dict = Dict  # BWC
 
 
-class OrderedDict(Dict):
-    """An ordered BTree-based dict-like persistent object that can be safely
-    inherited from.
+class MinimalList(CompositeQueue):
+    
+    def clear(self):
+        self._data = ()
+        
+    def append(self, item):
+        return CompositeQueue.put(self, item)
+    
+    def replace(self, items=()):
+        self.clear()
+        for item in items or ():
+            self.append(item)
+    
+    def remove(self, item):
+        index = -1
+        for pivot, v in enumerate(self):
+            if item == v:
+                index = pivot
+        if index != -1:
+            return self.pull(index)
+        raise ValueError('not in list')
 
+
+def list_type():
+    return BList()
+
+
+class OrderedDict(Dict):
+    """
+    An ordered BTree-based dict-like persistent object that can be safely
+    inherited from.
     """
 
-    # what do we get from the superclass:
-    # update, setdefault, __len__, popitem, __getitem__, has_key, __contains__,
-    # get, __delitem__
-
     def __init__(self, *args, **kwargs):
-        self._order = zc.blist.BList()
+        self._order = list_type()
         super(OrderedDict, self).__init__(*args, **kwargs)
 
     def keys(self):
@@ -202,11 +225,17 @@ class OrderedDict(Dict):
         if order_set.difference(self._order):
             raise ValueError("Incompatible key set.")
 
-        self._order[:] = order
+        if hasattr(self._order, "replace"):
+            self._order.replace(order)
+        else:
+            self._order[:] = order
 
     def clear(self):
         super(OrderedDict, self).clear()
-        del self._order[:]
+        if hasattr(self._order, "clear"):
+            self._order.clear()
+        else:
+            del self._order[:]
 
     def copy(self):
         if self.__class__ is OrderedDict:
@@ -214,8 +243,8 @@ class OrderedDict(Dict):
         data = self._data
         order = self._order
         try:
+            self._order = list_type()
             self._data = BTrees.OOBTree.OOBTree()
-            self._order = zc.blist.BList()
             c = copy.copy(self)
         finally:
             self._data = data
