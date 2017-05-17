@@ -145,8 +145,8 @@ class TestDict(unittest.TestCase):
         d.clear()
         assert_that(d, has_length(0))
         
-        d.append('ichigo')
-        assert_that(d, has_length(1))
+        d.extend(('ichigo', 'urahara'))
+        assert_that(d, has_length(2))
 
     def test_ordered_dict(self):
         d = dicts.OrderedDict()

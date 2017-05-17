@@ -164,6 +164,10 @@ class MinimalList(CompositeQueue):
     def append(self, item):
         return CompositeQueue.put(self, item)
     
+    def extend(self, items=()):
+        for item in items or ():
+            CompositeQueue.put(self, item)
+
     def replace(self, items=()):
         self.clear()
         for item in items or ():
