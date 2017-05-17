@@ -178,6 +178,7 @@ class MinimalList(CompositeQueue):
         for pivot, v in enumerate(self):
             if item == v:
                 index = pivot
+                break
         if index != -1:
             return self.pull(index)
         raise ValueError('not in list')
