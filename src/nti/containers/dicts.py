@@ -23,8 +23,6 @@ from zope import interface
 
 from zc.queue import CompositeQueue
 
-from zc.blist import BList
-
 from nti.base.interfaces import ILastModified
 
 from nti.containers.containers import _tx_key_insen
@@ -185,7 +183,11 @@ class MinimalList(CompositeQueue):
 
 
 def list_type():
-    return BList()
+    try:
+        from zc.blist import BList
+        return BList()
+    except ImportError:
+        return MinimalList()
 
 
 class OrderedDict(Dict):
