@@ -183,11 +183,7 @@ class MinimalList(CompositeQueue):
 
 
 def list_type():
-    try:
-        from zc.blist import BList
-        return BList()
-    except ImportError:
-        return MinimalList()
+    return MinimalList()
 
 
 class OrderedDict(Dict):
