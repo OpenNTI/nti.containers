@@ -21,8 +21,6 @@ from persistent import Persistent
 
 from zope import interface
 
-from zope.deprecation import deprecated
-
 from zc.queue import CompositeQueue
 
 from nti.base.interfaces import ILastModified
@@ -188,11 +186,13 @@ def list_type():
     return MinimalList()
 
 
-deprecated("OrderedDict", "use zope.container.ordered.OrderedContainer")
 class OrderedDict(Dict):
     """
     An ordered BTree-based dict-like persistent object that can be safely
     inherited from.
+    
+    Though not deprecated please use 
+    :class:`zope.container.ordered.OrderedContainer`
     """
 
     def __init__(self, *args, **kwargs):
