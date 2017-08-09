@@ -61,7 +61,7 @@ setup(
         'zope.intid',
         'zope.location',
         'zope.lifecycleevent',
-        'zope.site'
+        'zope.site',
     ],
     extras_require={
         'test': TESTS_REQUIRE,
