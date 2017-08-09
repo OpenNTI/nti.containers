@@ -40,7 +40,7 @@ class TestDict(unittest.TestCase):
 
         assert_that(c.lastModified, is_(0))
 
-        c[u'k'] = contained.Contained()
+        c['k'] = contained.Contained()
 
         assert_that(c.lastModified, 
                     is_(greater_than(0)),
@@ -49,7 +49,7 @@ class TestDict(unittest.TestCase):
         c.lastModified = 0
         assert_that(c.lastModified, is_(0))
 
-        del c[u'k']
+        del c['k']
 
         assert_that(c.lastModified, 
                     is_(greater_than(0)),
@@ -59,7 +59,7 @@ class TestDict(unittest.TestCase):
         c.lastModified = 0
         assert_that(c.lastModified, is_(0))
 
-        c[u'k'] = 1
+        c['k'] = 1
         c.lastModified = 0
         c.pop('missing key', None)
         assert_that(c.lastModified, is_(0))
@@ -92,7 +92,7 @@ class TestDict(unittest.TestCase):
         c = dicts.CaseInsensitiveLastModifiedDict()
 
         child = contained.Contained()
-        c[u'UPPER'] = child
+        c['UPPER'] = child
 
         assert_that(c.__contains__(None), is_false())
         assert_that(c.__contains__('UPPER'), is_true())
@@ -120,7 +120,7 @@ class TestDict(unittest.TestCase):
         assert_that(list(c.values('A')), is_([child]))
         assert_that(list(c.itervalues()), is_([child]))
 
-        del c[u'upper']
+        del c['upper']
         
     def test_minimal_list(self):
         d = dicts.MinimalList()
@@ -150,16 +150,16 @@ class TestDict(unittest.TestCase):
 
     def test_ordered_dict(self):
         d = dicts.OrderedDict()
-        d[u'foo'] = 'bar'
+        d['foo'] = 'bar'
         assert_that(d, has_length(1))
-        d[u'bar'] = 'baz'
+        d['bar'] = 'baz'
         assert_that(d, has_length(2))
         assert_that(d, has_entry('foo', is_('bar')))
         assert_that(d, has_entry('bar', is_('baz')))
 
         assert_that(list(d), is_(['foo', 'bar']))
         
-        d.update({u'bar': 'moo', u'ding': 'dong', u'beep': 'beep'})
+        d.update({'bar': 'moo', 'ding': 'dong', 'beep': 'beep'})
         assert_that(d, has_length(4))
         
         assert_that(list(d), is_not(['bar', 'beep', 'ding', 'foo']))
@@ -179,11 +179,12 @@ class TestDict(unittest.TestCase):
         with self.assertRaises(ValueError):
             d.updateOrder(['bar', 'beep', 'ding', 'ding'])
         
-        d.update([[u'sha', 'zam'], [u'ka', 'pow']])
+        d.update([['sha', 'zam'], ['ka', 'pow']])
         assert_that(d, has_length(6))
         
         assert_that(d, has_entry('ka', is_('pow')))
-        assert_that(list(d.keys()), is_( ['bar', 'beep', 'ding', 'foo', 'sha', 'ka']))
+        assert_that(list(d.keys()), 
+                    is_( ['bar', 'beep', 'ding', 'foo', 'sha', 'ka']))
 
         d.update(left='hook', right='jab')
         assert_that(d, has_length(8))
@@ -196,7 +197,8 @@ class TestDict(unittest.TestCase):
         assert_that(d.pop('right'), is_('jab'))
         
         assert_that(d, has_length(4))
-        assert_that(list(d.keys()), is_(['bar', 'beep', 'ding', 'foo']))
+        assert_that(list(d.keys()), 
+                    is_(['bar', 'beep', 'ding', 'foo']))
         
         with self.assertRaises(KeyError):
             d.pop('nonexistent')
@@ -204,7 +206,7 @@ class TestDict(unittest.TestCase):
         assert_that(d.pop('nonexistent', 42), is_(42))
         assert_that(d, has_length(4))
          
-        d.setdefault(u'newly created', 'value')
+        d.setdefault('newly created', 'value')
         assert_that(d, has_entry('newly created', is_('value')))
         assert_that(d, has_length(5))
         

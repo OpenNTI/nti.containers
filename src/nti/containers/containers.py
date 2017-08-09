@@ -10,21 +10,24 @@ insensitivity.
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
+from __future__ import print_function, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+import six
 import time
 import numbers
 import functools
 from random import randint
-
 from collections import Mapping
 
 from repoze.lru import lru_cache
 
 from slugify import slugify_url
+
+from Acquisition import aq_base
+from Acquisition.interfaces import IAcquirer
 
 from zope import component
 from zope import interface
@@ -50,7 +53,7 @@ from zope.site.site import SiteManagerContainer
 
 from ZODB.interfaces import IBroken
 
-from nti.base._compat import unicode_
+from nti.base._compat import text_
 
 from nti.containers.contained import no_ownership_setitem
 from nti.containers.contained import no_ownership_uncontained
@@ -85,7 +88,7 @@ class _IdGenerationMixin(object):
     #: The integer counter for generated ids.
     _v_nextid = 0
 
-    def generateId(self, prefix='item', suffix='', rand_ceiling=999999999, _nextid=None):
+    def generateId(self, prefix=u'item', suffix='', rand_ceiling=999999999, _nextid=None):
         """
         Returns an (string) ID not used yet by this folder. Use this method directly
         if you have no client-supplied name to use as a base. (If you have a meaningful
@@ -102,7 +105,7 @@ class _IdGenerationMixin(object):
         attempt = 0
         while True:
             if n % 4000 != 0 and n <= rand_ceiling:
-                the_id = '%s%d%s' % (prefix, n, suffix)
+                the_id = u'%s%d%s' % (prefix, n, suffix)
                 if not tree.has_key(the_id):
                     break
             n = randint(1, rand_ceiling)
@@ -135,8 +138,8 @@ class IdGeneratorNameChooser(NameChooser):
         # allow
         if not name:
             # use __class__, not type(), to work with proxies
-            name = unicode_(obj.__class__.__name__)
-        name = unicode_(name)  # throw if conversion doesn't work
+            name = text_(obj.__class__.__name__)
+        name = text_(name)  # throw if conversion doesn't work
         name = name.strip()  # no whitespace
         # remove bad characters
         name = name.replace('/', '.').lstrip('+@')
@@ -242,56 +245,46 @@ class _CheckObjectOnSetMixin(object):
         checkObject(self, key, value)
         super(_CheckObjectOnSetMixin, self)._setitemf(key, value)
 
-try:
-    from Acquisition import aq_base
-    from Acquisition.interfaces import IAcquirer
 
-    class AcquireObjectsOnReadMixin(object):
+class AcquireObjectsOnReadMixin(object):
+    """
+    Mix this in /before/ the container to support implicit
+    acquisition.
+    """
+
+    def __setitem__(self, key, value):
         """
-        Mix this in /before/ the container to support implicit
-        acquisition.
+        Ensure that we do not put an acquisition wrapper
+        as the __parent__ key (self).
         """
+        self = aq_base(self)
+        super(AcquireObjectsOnReadMixin, self).__setitem__(key, value)
+    
+    def __acquire(self, result):
+        if IAcquirer.providedBy(result):
+            # Make it __of__ this object. But if this object is itself
+            # already acquired, and from its own parent, then
+            # there's no good reason to acquire from the wrapper
+            # that is this object.
+            base_self = aq_base(self)
+            base_self_parent = getattr(base_self, '__parent__', None)
+            if     base_self is self \
+                or base_self_parent is getattr(self, '__parent__', None):
+                result = result.__of__(base_self)
+    
+        return result
+    
+    def __getitem__(self, key):
+        result = super(AcquireObjectsOnReadMixin, self).__getitem__(key)
+        return self.__acquire(result)
+    
+    def get(self, key, default=None):
+        result = super(AcquireObjectsOnReadMixin, self).get(key, default)
+        # BTreeFolder doesn't wrap the default
+        if result is not default:
+            result = self.__acquire(result)
+        return result
 
-        def __setitem__(self, key, value):
-            """
-            Ensure that we do not put an acquisition wrapper
-            as the __parent__ key (self).
-            """
-            self = aq_base(self)
-            super(AcquireObjectsOnReadMixin, self).__setitem__(key, value)
-
-        def __acquire(self, result):
-            if IAcquirer.providedBy(result):
-                # Make it __of__ this object. But if this object is itself
-                # already acquired, and from its own parent, then
-                # there's no good reason to acquire from the wrapper
-                # that is this object.
-                base_self = aq_base(self)
-                base_self_parent = getattr(base_self, '__parent__', None)
-                if     base_self is self \
-                    or base_self_parent is getattr(self, '__parent__', None):
-                    result = result.__of__(base_self)
-
-            return result
-
-        def __getitem__(self, key):
-            result = super(AcquireObjectsOnReadMixin, self).__getitem__(key)
-            return self.__acquire(result)
-
-        def get(self, key, default=None):
-            result = super(AcquireObjectsOnReadMixin, self).get(key,
-                                                                default=default)
-            # BTreeFolder doesn't wrap the default
-            if result is not default:
-                result = self.__acquire(result)
-            return result
-
-except ImportError:
-    # Acquisition not installed
-    class AcquireObjectsOnReadMixin(object):
-        """
-        No-op because Acquisition is not installed.
-        """
 
 # Last modified based containers
 
@@ -393,7 +386,12 @@ class LastModifiedBTreeContainer(DCTimesLastModifiedMixin,
 mapping_register = getattr(Mapping, 'register')
 mapping_register(LastModifiedBTreeContainer)
 
-ModDateTrackingBTreeContainer = LastModifiedBTreeContainer  # BWC
+import zope.deferredimport
+zope.deferredimport.initialize()
+
+zope.deferredimport.deprecated(
+    "Import from LastModifiedBTreeContainer instead",
+    ModDateTrackingBTreeContainer='nti.containers.containers:LastModifiedBTreeContainer')
 
 
 class CheckingLastModifiedBTreeContainer(_CheckObjectOnSetMixin,
@@ -422,10 +420,10 @@ class EventlessLastModifiedBTreeContainer(LastModifiedBTreeContainer):
         # Containers don't allow None; keys must be unicode
         if isinstance(key, str):
             try:
-                key = unicode_(key)
+                key = text_(key)
             except UnicodeError:
                 raise TypeError('Key could not be converted to unicode')
-        elif not isinstance(key, unicode):
+        elif not isinstance(key, six.text_type):
             raise TypeError("Key must be unicode")
 
     def _checkValue(self, value):
@@ -510,7 +508,7 @@ class _CaseInsensitiveKey(object):
         if not isinstance(key, basestring):
             raise TypeError("Expected basestring instead of %s (%r)" %
                             (type(key), key))
-        self.key = unicode_(key)
+        self.key = text_(key)
         self._lower_key = self.key.lower()
 
     def __str__(self):  # pragma: no cover
@@ -656,8 +654,10 @@ class CaseInsensitiveLastModifiedBTreeContainer(LastModifiedBTreeContainer):
                 continue
             yield v
 
-# BWC
-KeyPreservingCaseInsensitiveModDateTrackingBTreeContainer = CaseInsensitiveLastModifiedBTreeContainer
+
+zope.deferredimport.deprecated(
+    "Import from LastModifiedBTreeContainer instead",
+    KeyPreservingCaseInsensitiveModDateTrackingBTreeContainer='nti.containers.containers:CaseInsensitiveLastModifiedBTreeContainer')
 
 
 class CaseSensitiveLastModifiedBTreeFolder(CheckingLastModifiedBTreeFolder):
@@ -688,8 +688,6 @@ class CaseInsensitiveCheckingLastModifiedBTreeContainer(_CheckObjectOnSetMixin,
     pass
 
 
-import zope.deferredimport
-zope.deferredimport.initialize()
 zope.deferredimport.deprecated(
     "Import from nti.containers.datastructures instead",
     _marker='nti.containers.datastructures:_marker',

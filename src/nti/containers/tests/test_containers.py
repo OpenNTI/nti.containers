@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function, unicode_literals, absolute_import, division
+from __future__ import print_function, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 # disable: accessing protected members, too many methods
@@ -249,7 +249,7 @@ class TestContainers(unittest.TestCase):
             c[None] = value
 
         with assert_raises(TypeError):
-            c[b'\xf0\x00\x00\x00'] = value
+            c['\xf0\x00\x00\x00'] = value
 
         # After all that, nothing has changed
         assert_that(c['key'], is_(same_instance(value)))

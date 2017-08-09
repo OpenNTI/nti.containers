@@ -80,7 +80,7 @@ def no_ownership_setitem(container, setitemf, name, obj):
         notifyContainerModified(container)
 
 
-def no_ownership_uncontained(obj, container, name=None):
+def no_ownership_uncontained(obj, container, unused_name=None):
     """    
     see zope.container.contained.uncontained
     """

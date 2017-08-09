@@ -40,6 +40,7 @@ setup(
     tests_require=TESTS_REQUIRE,
     install_requires=[
         'setuptools',
+        'Acquisition',
         'awesome-slugify',
         'BTrees',
         'nti.base',

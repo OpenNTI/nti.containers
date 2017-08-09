@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function, unicode_literals, absolute_import, division
+from __future__ import print_function, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 # disable: accessing protected members, too many methods
@@ -17,11 +17,11 @@ does_not = is_not
 
 import unittest
 
-import BTrees
-
 from zope import interface
 
 from zope.container.contained import Contained as ZContained
+
+import BTrees
 
 from nti.base.interfaces import ILastModified
 
