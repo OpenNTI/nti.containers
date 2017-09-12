@@ -326,7 +326,7 @@ class IntidContainedStorage(Persistent, Contained, Iterable, Container, Sized):
         return self.addContainedObjectToContainer(contained,
                                                   contained.containerId)
 
-    def deleteEqualContainedObject(self, contained, log_level=None):
+    def deleteEqualContainedObject(self, contained, *unused_args, **unused_kwargs):
         """
         Fetches the containerId from the object.
         """
