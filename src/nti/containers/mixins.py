@@ -12,6 +12,7 @@ logger = __import__('logging').getLogger(__name__)
 
 try:
     from UserDict import DictMixin
+    DictMixin = DictMixin # pylint
 except Exception:
     class DictMixin(object):
         # Code taken from python2  UserDict.DictMixin
@@ -41,7 +42,7 @@ except Exception:
         def itervalues(self):
             for _, v in self.iteritems():
                 yield v
-        
+
         def values(self):
             return [v for _, v in self.iteritems()]
 
@@ -74,7 +75,7 @@ except Exception:
 
         def popitem(self):
             try:
-                k, v = self.iteritems().next()
+                k, v = next(self.iteritems())
             except StopIteration:
                 raise KeyError('container is empty')
             del self[k]
@@ -102,12 +103,8 @@ except Exception:
             except KeyError:
                 return default
 
-        def __cmp__(self, other):
-            if other is None:
-                return 1
-            if isinstance(other, DictMixin):
-                other = dict(other.iteritems())
-            return cmp(dict(self.iteritems()), other)
+        def __repr__(self):
+            return repr(dict(self.iteritems()))
 
         def __len__(self):
             return len(self.keys())

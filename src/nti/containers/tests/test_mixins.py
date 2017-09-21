@@ -10,7 +10,6 @@ from __future__ import absolute_import
 
 from hamcrest import is_
 from hamcrest import none
-from hamcrest import equal_to
 from hamcrest import has_entry
 from hamcrest import has_length
 from hamcrest import assert_that
@@ -94,4 +93,4 @@ class TestMixins(unittest.TestCase):
         c.update(None)
         c.update({'1': '2'})
 
-        assert_that(c, equal_to({'1': '2'}))
+        assert_that(repr(c), is_("{'1': '2'}"))
