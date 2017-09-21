@@ -26,10 +26,12 @@ from repoze.lru import lru_cache
 from slugify import slugify_url
 
 from Acquisition import aq_base
+
 from Acquisition.interfaces import IAcquirer
 
 from zope import component
 from zope import interface
+from zope import deferredimport
 from zope import lifecycleevent
 
 from zope.annotation.interfaces import IAttributeAnnotatable
@@ -61,7 +63,8 @@ from nti.dublincore.time_mixins import DCTimesLastModifiedMixin
 
 from nti.externalization.interfaces import StandardExternalFields
 
-from nti.ntiids import ntiids
+from nti.ntiids.ntiids import InvalidNTIIDError
+from nti.ntiids.ntiids import make_specific_safe
 
 from nti.zodb.minmax import NumericMaximum
 from nti.zodb.minmax import NumericPropertyDefaultingToZero
@@ -73,6 +76,7 @@ LAST_MODIFIED = StandardExternalFields.LAST_MODIFIED
 _MAX_UNIQUEID_ATTEMPTS = 1000
 
 logger = __import__('logging').getLogger(__name__)
+
 
 # BTree containers
 
@@ -206,8 +210,8 @@ class AbstractNTIIDSafeNameChooser(object):
 
     def __make_specific_safe(self, name):
         try:
-            return ntiids.make_specific_safe(name)
-        except ntiids.InvalidNTIIDError as e:
+            return make_specific_safe(name)
+        except InvalidNTIIDError as e:
             if 'title' in self.leaf_iface:
                 e.field = self.leaf_iface['title']
             else:
@@ -217,7 +221,7 @@ class AbstractNTIIDSafeNameChooser(object):
     def _to_ntiid_safe(self, name):
         try:
             return self.__make_specific_safe(name)
-        except ntiids.InvalidNTIIDError:
+        except InvalidNTIIDError:
             if self.slugify:
                 return self.__make_specific_safe(slugify_url(name))
             raise
@@ -387,10 +391,9 @@ class LastModifiedBTreeContainer(DCTimesLastModifiedMixin,
 mapping_register = getattr(Mapping, 'register')
 mapping_register(LastModifiedBTreeContainer)
 
-import zope.deferredimport
-zope.deferredimport.initialize()
+deferredimport.initialize()
 
-zope.deferredimport.deprecated(
+deferredimport.deprecated(
     "Import from LastModifiedBTreeContainer instead",
     ModDateTrackingBTreeContainer='nti.containers.containers:LastModifiedBTreeContainer')
 
@@ -656,7 +659,7 @@ class CaseInsensitiveLastModifiedBTreeContainer(LastModifiedBTreeContainer):
             yield v
 
 
-zope.deferredimport.deprecated(
+deferredimport.deprecated(
     "Import from LastModifiedBTreeContainer instead",
     KeyPreservingCaseInsensitiveModDateTrackingBTreeContainer='nti.containers.containers:CaseInsensitiveLastModifiedBTreeContainer')
 
@@ -689,7 +692,7 @@ class CaseInsensitiveCheckingLastModifiedBTreeContainer(_CheckObjectOnSetMixin,
     pass
 
 
-zope.deferredimport.deprecated(
+deferredimport.deprecated(
     "Import from nti.containers.datastructures instead",
     _marker='nti.containers.datastructures:_marker',
     IntidContainedStorage='nti.containers.datastructures:IntidContainedStorage',
