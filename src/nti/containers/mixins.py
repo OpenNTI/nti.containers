@@ -14,14 +14,7 @@ try:
     from UserDict import DictMixin
 except ImportError:
     class DictMixin(object):
-        # Mixin defining all dictionary methods for classes that already have
-        # a minimum dictionary interface including getitem, setitem, delitem,
-        # and keys. Without knowledge of the subclass constructor, the mixin
-        # does not define __init__() or copy().  In addition to the four base
-        # methods, progressively more efficiency comes with defining
-        # __contains__(), __iter__(), and iteritems().
-
-        # second level definitions support higher levels
+        # Code taken from python2  UserDict.DictMixin
         def __iter__(self):
             for k in self.keys():
                 yield k

@@ -12,7 +12,7 @@
 	<include package="zope.annotation" />
 	<include package="zope.dublincore" />
 
-	<!-- Subscribers -->
+	<!-- Implements -->
 	<class class="nti.containers.containers.LastModifiedBTreeContainer">
 		<implements interface="nti.base.interfaces.ILastModified" />
 	</class>
@@ -23,7 +23,7 @@
 			 		 zope.container.interfaces.IContainerModifiedEvent"/>
 			
 	<!-- 
-	TODO: We are relying on registration order. Make sure that's kosher. 
+	We are relying on registration order.
 	-->
 	<subscriber handler=".subscribers.update_object_modified_time"
 				for="nti.base.interfaces.ILastModified
