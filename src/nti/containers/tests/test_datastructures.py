@@ -76,6 +76,7 @@ class TestMappingFacade(unittest.TestCase):
         assert_that(self.facade, does_not(has_key('c')))
 
         assert_that(self.facade, has_length(2))
+        repr(self.facade)
 
     def test_get(self):
         facade = self.facade

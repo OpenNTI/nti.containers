@@ -102,9 +102,6 @@ except ImportError:
             except KeyError:
                 return default
 
-        def __repr__(self):
-            return repr(dict(self.iteritems()))
-
         def __cmp__(self, other):
             if other is None:
                 return 1
