@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function, absolute_import, division
-__docformat__ = "restructuredtext en"
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 # disable: accessing protected members, too many methods
 # pylint: disable=W0212,R0904
@@ -15,8 +16,6 @@ from hamcrest import has_entry
 from hamcrest import has_length
 from hamcrest import assert_that
 from hamcrest import greater_than
-
-from nose.tools import assert_raises
 
 from nti.testing.matchers import is_true
 from nti.testing.matchers import is_false
@@ -69,7 +68,7 @@ class TestDict(unittest.TestCase):
                     is_(greater_than(0)),
                     "__delitem__ should change lastModified")
 
-        with assert_raises(KeyError):
+        with self.assertRaises(KeyError):
             c.pop('k')
 
         c.lastModified = 0

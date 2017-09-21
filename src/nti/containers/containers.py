@@ -10,10 +10,9 @@ insensitivity.
 .. $Id$
 """
 
-from __future__ import print_function, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import six
 import time
@@ -71,9 +70,11 @@ from nti.zodb.persistentproperty import PersistentPropertyHolder
 
 LAST_MODIFIED = StandardExternalFields.LAST_MODIFIED
 
-# BTree containers
-
 _MAX_UNIQUEID_ATTEMPTS = 1000
+
+logger = __import__('logging').getLogger(__name__)
+
+# BTree containers
 
 
 class ExhaustedUniqueIdsError(Exception):
@@ -505,7 +506,7 @@ class _CaseInsensitiveKey(object):
     """
 
     def __init__(self, key):
-        if not isinstance(key, basestring):
+        if not isinstance(key, six.string_types):
             raise TypeError("Expected basestring instead of %s (%r)" %
                             (type(key), key))
         self.key = text_(key)

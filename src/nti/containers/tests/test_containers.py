@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function, absolute_import, division
-__docformat__ = "restructuredtext en"
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 # disable: accessing protected members, too many methods
 # pylint: disable=W0212,R0904
@@ -17,12 +18,11 @@ from hamcrest import greater_than
 from hamcrest import same_instance
 does_not = is_not
 
-from nose.tools import assert_raises
-
 from nti.testing.matchers import is_true
 from nti.testing.matchers import is_false
 from nti.testing.matchers import validly_provides
 
+import six
 import unittest
 
 import BTrees
@@ -75,7 +75,7 @@ class TestContainers(unittest.TestCase):
 
         # bad chars are stripped, and the result is unicode
         name = name_chooser.chooseName(b'+@hah/bah', None)
-        assert_that(name, is_(unicode))
+        assert_that(name, is_(six.text_type))
         assert_that(name, is_('hah.bah'))
 
         # assign to the random id so we have deterministic results
@@ -174,10 +174,10 @@ class TestContainers(unittest.TestCase):
 
         c = CaseInsensitiveLastModifiedBTreeContainer()
 
-        with assert_raises(TypeError):
+        with self.assertRaises(TypeError):
             c.get({})
 
-        with assert_raises(TypeError):
+        with self.assertRaises(TypeError):
             c.get(1)
 
     def test_eventless_container(self):
@@ -196,17 +196,17 @@ class TestContainers(unittest.TestCase):
         assert_that(c, has_length(1))
 
         # We cannot add duplicates
-        with assert_raises(KeyError):
+        with self.assertRaises(KeyError):
             c['key'] = value2
 
         # We cannot add None values or non-unicode keys
-        with assert_raises(TypeError):
+        with self.assertRaises(TypeError):
             c['key2'] = None
 
-        with assert_raises(TypeError):
+        with self.assertRaises(TypeError):
             c[None] = value
 
-        with assert_raises(TypeError):
+        with self.assertRaises(TypeError):
             c[b'\xf0\x00\x00\x00'] = value
 
         assert_that(c._checkSame('key', value), is_(True))
@@ -242,14 +242,14 @@ class TestContainers(unittest.TestCase):
         assert_that(value, has_property('__parent__', is_(marker)))
 
         # We cannot add duplicates
-        with assert_raises(KeyError):
+        with self.assertRaises(KeyError):
             c['key'] = value2
 
-        with assert_raises(TypeError):
+        with self.assertRaises(TypeError):
             c[None] = value
 
-        with assert_raises(TypeError):
-            c['\xf0\x00\x00\x00'] = value
+        with self.assertRaises(TypeError):
+            c[b'\xf0\x00\x00\x00'] = value
 
         # After all that, nothing has changed
         assert_that(c['key'], is_(same_instance(value)))

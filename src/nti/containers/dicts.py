@@ -6,10 +6,9 @@ Implementations of persistent dicts with various qualities.
 .. $Id$
 """
 
-from __future__ import print_function, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import copy
 import time
@@ -31,6 +30,8 @@ from nti.zodb.minmax import NumericMaximum
 from nti.zodb.minmax import NumericPropertyDefaultingToZero
 
 from nti.zodb.persistentproperty import PersistentPropertyHolder
+
+logger = __import__('logging').getLogger(__name__)
 
 
 class Dict(Persistent):

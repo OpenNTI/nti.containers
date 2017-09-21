@@ -4,10 +4,11 @@
 .. $Id$
 """
 
-from __future__ import print_function, absolute_import, division
-__docformat__ = "restructuredtext en"
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
-logger = __import__('logging').getLogger(__name__)
+import six
 
 from zope import interface
 
@@ -24,6 +25,8 @@ from zope.lifecycleevent import ObjectRemovedEvent
 
 from zope.location.interfaces import ILocation
 from zope.location.interfaces import IContained
+
+logger = __import__('logging').getLogger(__name__)
 
 
 def noOwnershipContainedEvent(obj, container, name=None):
@@ -61,7 +64,7 @@ def no_ownership_setitem(container, setitemf, name, obj):
             name = name.decode('ascii')
         except UnicodeError:
             raise TypeError("name not unicode or ascii string")
-    elif not isinstance(name, unicode):
+    elif not isinstance(name, six.text_type):
         raise TypeError("name not unicode or ascii string")
 
     if not name:

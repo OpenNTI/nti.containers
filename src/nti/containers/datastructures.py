@@ -4,19 +4,16 @@
 .. $Id$
 """
 
-from __future__ import print_function, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import time
 from collections import Sized
 from collections import Mapping
 from collections import Iterable
 from collections import Container
-
-from UserDict import DictMixin
-
+    
 from zope import component
 from zope import interface
 
@@ -39,12 +36,15 @@ from BTrees.Length import Length
 
 from nti.containers.common import discard_p
 
+from nti.containers.mixins import DictMixin
+
 from nti.externalization.representation import make_repr
 
 from nti.zodb.containers import ZERO_64BIT_INT
 from nti.zodb.containers import bit64_int_to_time
 from nti.zodb.containers import time_to_64bit_int
 
+logger = __import__('logging').getLogger(__name__)
 
 # Containers specialized to work with intids.
 # Make pylint not complain about "badly implemented container", "Abstract class not referenced"
