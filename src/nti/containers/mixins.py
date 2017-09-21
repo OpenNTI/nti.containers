@@ -12,7 +12,7 @@ logger = __import__('logging').getLogger(__name__)
 
 try:
     from UserDict import DictMixin
-except ImportError:
+except Exception:
     class DictMixin(object):
         # Code taken from python2  UserDict.DictMixin
         def __iter__(self):
@@ -41,7 +41,7 @@ except ImportError:
         def itervalues(self):
             for _, v in self.iteritems():
                 yield v
-
+        
         def values(self):
             return [v for _, v in self.iteritems()]
 
@@ -49,7 +49,7 @@ except ImportError:
             return list(self.iteritems())
 
         def clear(self):
-            for key in self.keys():
+            for key in list(self.iterkeys()):
                 del self[key]
 
         def setdefault(self, key, default=None):
