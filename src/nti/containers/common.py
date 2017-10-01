@@ -8,8 +8,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
-logger = __import__('logging').getLogger(__name__)
-
 
 def discard(the_set, the_value):
     """
@@ -47,7 +45,6 @@ def discard_p(the_set, the_value):
     try:
         # Both set and OOSet support remove with the same semantics
         the_set.remove(the_value)
-        # TODO: Is there a more useful value to return? If so document it
         return True
     except KeyError:
         return False

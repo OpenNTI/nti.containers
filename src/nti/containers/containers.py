@@ -229,7 +229,6 @@ class AbstractNTIIDSafeNameChooser(object):
     def chooseName(self, name, obj):
         # NTIID flatten
         name = self._to_ntiid_safe(name)
-
         # Now on to the next adapter (Note: this ignores class-based adapters)
         # First, get the "required" interface list (from the adapter's standpoint),
         # removing the think we just adapted out
@@ -611,8 +610,7 @@ class CaseInsensitiveLastModifiedBTreeContainer(LastModifiedBTreeContainer):
         l.change(-1)
 
     def _delitemf(self, key, event=True):
-        item = LastModifiedBTreeContainer._delitemf(self,
-                                                    _tx_key_insen(key),
+        item = LastModifiedBTreeContainer._delitemf(self, _tx_key_insen(key),
                                                     event)
         return item
 

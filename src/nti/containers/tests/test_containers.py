@@ -23,9 +23,15 @@ from nti.testing.matchers import is_false
 from nti.testing.matchers import validly_provides
 
 import six
+import time
+import fudge
 import unittest
 
 import BTrees
+
+from Acquisition import Implicit
+
+from ExtensionClass import Base
 
 from zope import interface
 from zope import lifecycleevent
@@ -37,17 +43,28 @@ from zope.container.contained import Contained as ZContained
 
 from zope.container.interfaces import INameChooser
 
+from zope.dottedname import resolve as dottedname
+
 from zope.location.interfaces import IContained
 
 from nti.base.interfaces import ILastModified
 
+from nti.containers.containers import _IdGenerationMixin
+from nti.containers.containers import _CaseInsensitiveKey
+from nti.containers.containers import _CheckObjectOnSetMixin
 from nti.containers.containers import IdGeneratorNameChooser
+from nti.containers.containers import ExhaustedUniqueIdsError
+from nti.containers.containers import AcquireObjectsOnReadMixin
 from nti.containers.containers import LastModifiedBTreeContainer
+from nti.containers.containers import AbstractNTIIDSafeNameChooser
 from nti.containers.containers import EventlessLastModifiedBTreeContainer
+from nti.containers.containers import CaseSensitiveLastModifiedBTreeFolder
 from nti.containers.containers import NOOwnershipLastModifiedBTreeContainer
 from nti.containers.containers import CaseInsensitiveLastModifiedBTreeContainer
 
 from nti.dublincore.datastructures import CreatedModDateTrackingObject
+
+from nti.ntiids.ntiids import ImpossibleToMakeSpecificPartSafe
 
 from nti.containers.tests import SharedConfiguringTestLayer
 
@@ -69,6 +86,9 @@ class TestContainers(unittest.TestCase):
         name_chooser = INameChooser(c)
         assert_that(name_chooser, is_(IdGeneratorNameChooser))
 
+        assert_that(name_chooser.chooseName(None, Contained()),
+                    is_('Contained'))
+        
         # initial names
         c['foo.jpg'] = Contained()
         c['baz'] = Contained()
@@ -99,11 +119,61 @@ class TestContainers(unittest.TestCase):
         c._v_nextid = 0
         name = name_chooser.chooseName('biz.1', None)
         assert_that(name, is_('biz.2'))
+        
+        c.clear()
+        assert_that(c, has_length(0))
+
+    def test_exhausted(self):
+        tree = fudge.Fake().provides('has_key').returns(True)
+        container = _IdGenerationMixin()
+        container._SampleContainer__data = tree
+        with self.assertRaises(ExhaustedUniqueIdsError):
+            container.generateId()
+
+    def test_abstract_name_chooser(self):
+        obj = Contained()
+        container = LastModifiedBTreeContainer()
+        chooser = AbstractNTIIDSafeNameChooser(container)
+        chooser.leaf_iface = IContained
+        assert_that(chooser.chooseName('x', obj), is_('x'))
+        assert_that(chooser.chooseName(u'いちご', obj), is_('ichigo'))
+        chooser.slugify = False
+        with self.assertRaises(ImpossibleToMakeSpecificPartSafe):
+            chooser.chooseName(u'いちご', obj)
+            
+        class IFake(interface.Interface):
+            title = interface.Attribute("fake")
+        chooser.leaf_iface = IFake
+        with self.assertRaises(ImpossibleToMakeSpecificPartSafe) as e:
+            chooser.chooseName(u'いちご', obj)
+        assert_that(e.exception, has_property('field', is_(interface.Attribute)))
+
+    def test_check_lm_container(self):
+        class C(_CheckObjectOnSetMixin,
+                LastModifiedBTreeContainer):
+            pass
+        c = C()
+        c['ichigo'] = Contained()
+        c['aizen'] = Contained()
+        c.updateLastMod(time.time() + 100)
+        assert_that(c.maxKey(), is_('ichigo'))
+        assert_that(c.minKey(), is_('aizen'))
+        # delete w/ event
+        c._delitemf('aizen')
+        assert_that(c, has_length(1))
+        for func in (c.itervalues, c.iterkeys, c.iteritems):
+            assert_that(list(func()), has_length(1))
+            assert_that(list(func('zaraki', 'zaraki')), has_length(0))
+
+        # clear
+        c.clear()
+        assert_that(c, has_length(0))
+        # no effect
+        c.clear()
+        assert_that(c, has_length(0))
 
     def test_lastModified_container_event(self):
-
         c = LastModifiedBTreeContainer()
-
         assert_that(c.lastModified, is_(0))
 
         c['k'] = ZContained()
@@ -169,14 +239,27 @@ class TestContainers(unittest.TestCase):
         assert_that(list(c.itervalues()), is_([child]))
 
         del c['upper']
+        assert_that(c.get(None), is_(none()))
+        
+        c['mykey'] = child
+        assert_that(c._delitemf('mykey'), is_(child))
+        assert_that(c, has_length(0))
+        
+        c.clear()
+        c['mykey'] = child
+        assert_that(list(c.iterkeys()), has_length(1))
+        assert_that(list(c.iterkeys('a', 'a')), has_length(0))
+        
+        c['otherkey'] = 2
+        assert_that(list(c.sublocations()), has_length(1))
+        
+        key = _CaseInsensitiveKey('UPPER')
+        assert_that(hash(key), is_(hash('upper')))
 
     def test_case_insensitive_container_invalid_keys(self):
-
         c = CaseInsensitiveLastModifiedBTreeContainer()
-
         with self.assertRaises(TypeError):
             c.get({})
-
         with self.assertRaises(TypeError):
             c.get(1)
 
@@ -220,6 +303,10 @@ class TestContainers(unittest.TestCase):
         assert_that(c.get('key'), is_(none()))
         assert_that(getEvents(), has_length(0))
         assert_that(c, has_length(0))
+        
+        c['key'] = value
+        assert_that(c.pop('key', None), is_(value))
+        assert_that(c.pop('key', None), is_(none()))
 
     def test_noownership_container(self):
 
@@ -272,3 +359,65 @@ class TestContainers(unittest.TestCase):
         assert_that(c.get('key'), is_not(none()))
         assert_that(getEvents(), has_length(2))
         assert_that(c, has_length(1))
+        
+        # clear container
+        clearEvents()
+        c.clear()
+        assert_that(getEvents(), has_length(2))
+        
+        c['key'] = object()
+        clearEvents()
+        c.clear(False)
+        assert_that(getEvents(), has_length(0))
+         
+        class Broken(object):
+            def __init__(self, state=True):
+                if state:
+                    self.__Broken_state__ = {'__name__': 'key',
+                                             '__parent__': c}
+        
+        c.clear() 
+        clearEvents()
+        
+        # test broke objs
+        broken = Broken()
+        c._setitemf('key', broken)
+        del c['key']
+        assert_that(getEvents(), has_length(2))
+        assert_that(c, has_length(0))
+        
+        clearEvents()
+        broken = Broken(False)
+        c._setitemf('key', broken)
+        with self.assertRaises(AttributeError):
+            del c['key']
+        
+        clearEvents()
+        c.clear()
+        c._setitemf('key', broken)
+        
+        module = dottedname.resolve('nti.containers.contained')
+        module.__dict__['fixing_up'] = True
+        with self.assertRaises(AttributeError):
+            del c['key']
+        module.__dict__['fixing_up'] = False
+
+    def test_case_sensitive_last_modified_btree_folder(self):
+        c = CaseSensitiveLastModifiedBTreeFolder()
+        c['key'] = Contained()
+        c['KEY'] = Contained()
+        assert_that(list(c.sublocations()), has_length(2))
+
+    def test_aquire(self):
+        class C(Base,
+                AcquireObjectsOnReadMixin,
+                CaseInsensitiveLastModifiedBTreeContainer):
+            pass
+        
+        class I(Implicit):
+            pass
+
+        c = C()
+        c['key'] = I()
+        assert_that(c.get('key'), is_(I))
+        assert_that(c.__getitem__('key'), is_(I))
