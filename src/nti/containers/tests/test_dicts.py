@@ -38,17 +38,17 @@ class TestDict(unittest.TestCase):
         c['k'] = contained.Contained()
         c['k'] = contained.Contained()
         assert_that(c, has_length(1))
-        
+
         with self.assertRaises(TypeError):
-            c.update(1,2,3)
-            
+            c.update(1, 2, 3)
+
         assert_that(c.pop('z', None), is_(none()))
         with self.assertRaises(KeyError):
             c.pop('z')
-        
+
         for func in (c.keys, c.values, c.items):
             assert_that(func(), has_length(1))
-        
+
         for func in (c.iteritems, c.iterkeys, c.itervalues):
             assert_that(list(func()), has_length(1))
 
@@ -57,7 +57,7 @@ class TestDict(unittest.TestCase):
         cp = c.copy()
         assert_that(cp, has_length(1))
         assert_that(cp, is_(dicts.Dict))
-        
+
         class N(dicts.Dict):
             pass
         n = N()
@@ -73,7 +73,7 @@ class TestDict(unittest.TestCase):
         assert_that(n, has_length(0))
         with self.assertRaises(KeyError):
             n.popitem()
-        
+
     def test_lastModified_dict(self):
 
         c = dicts.LastModifiedDict()
@@ -82,7 +82,7 @@ class TestDict(unittest.TestCase):
 
         c['k'] = contained.Contained()
 
-        assert_that(c.lastModified, 
+        assert_that(c.lastModified,
                     is_(greater_than(0)),
                     "__setitem__ should change lastModified")
         # reset
@@ -91,7 +91,7 @@ class TestDict(unittest.TestCase):
 
         del c['k']
 
-        assert_that(c.lastModified, 
+        assert_that(c.lastModified,
                     is_(greater_than(0)),
                     "__delitem__ should change lastModified")
 
@@ -105,7 +105,7 @@ class TestDict(unittest.TestCase):
         assert_that(c.lastModified, is_(0))
         c.pop('k')
 
-        assert_that(c.lastModified, 
+        assert_that(c.lastModified,
                     is_(greater_than(0)),
                     "__delitem__ should change lastModified")
 
@@ -121,7 +121,7 @@ class TestDict(unittest.TestCase):
         c[u'k'] = 1
         c.lastModified = 0
         c.clear()
-        assert_that(c.lastModified, 
+        assert_that(c.lastModified,
                     is_(greater_than(0)),
                     "full clear should change lastModified")
 
@@ -161,7 +161,7 @@ class TestDict(unittest.TestCase):
         assert_that(list(c.itervalues()), is_([child]))
 
         del c['upper']
-        
+
     def test_minimal_list(self):
         d = dicts.MinimalList()
         d.append('ichigo')
@@ -171,20 +171,20 @@ class TestDict(unittest.TestCase):
 
         d.append('rukia')
         assert_that(d, has_length(3))
-        
+
         d.remove('rukia')
         assert_that(d, has_length(2))
-        
+
         with self.assertRaises(ValueError):
             d.remove('rukia')
-        
+
         d.replace(['aizen', 'ichigo', 'zaraki'])
         assert_that(d, has_length(3))
         assert_that(list(d), is_(['aizen', 'ichigo', 'zaraki']))
-        
+
         d.clear()
         assert_that(d, has_length(0))
-        
+
         d.extend(('ichigo', 'urahara'))
         assert_that(d, has_length(2))
 
@@ -198,65 +198,65 @@ class TestDict(unittest.TestCase):
         assert_that(d, has_entry('bar', is_('baz')))
 
         assert_that(list(d), is_(['foo', 'bar']))
-        
+
         d.update({'bar': 'moo', 'ding': 'dong', 'beep': 'beep'})
         assert_that(d, has_length(4))
-        
+
         assert_that(list(d), is_not(['bar', 'beep', 'ding', 'foo']))
-        
+
         d.updateOrder(('bar', 'beep', 'ding', 'foo'))
         assert_that(list(d.keys()), is_(['bar', 'beep', 'ding', 'foo']))
-  
+
         with self.assertRaises(ValueError):
             d.updateOrder(['bar', 'beep', 'ding'])
-            
+
         with self.assertRaises(ValueError):
             d.updateOrder(['bar', 'beep', 'ding', 'sha', 'foo'])
-            
+
         with self.assertRaises(ValueError):
             d.updateOrder(['bar', 'beep', 'ding', 'sha'])
-            
+
         with self.assertRaises(ValueError):
             d.updateOrder(['bar', 'beep', 'ding', 'ding'])
-        
+
         d.update([['sha', 'zam'], ['ka', 'pow']])
         assert_that(d, has_length(6))
-        
+
         assert_that(d, has_entry('ka', is_('pow')))
-        assert_that(list(d.keys()), 
-                    is_( ['bar', 'beep', 'ding', 'foo', 'sha', 'ka']))
+        assert_that(list(d.keys()),
+                    is_(['bar', 'beep', 'ding', 'foo', 'sha', 'ka']))
 
         d.update(left='hook', right='jab')
         assert_that(d, has_length(8))
-        
+
         assert_that(d, has_entry('left', is_('hook')))
-        
+
         assert_that(d.pop('sha'), is_('zam'))
         assert_that(d.pop('ka'), is_('pow'))
         assert_that(d.pop('left'), is_('hook'))
         assert_that(d.pop('right'), is_('jab'))
-        
+
         assert_that(d, has_length(4))
-        assert_that(list(d.keys()), 
+        assert_that(list(d.keys()),
                     is_(['bar', 'beep', 'ding', 'foo']))
-        
+
         with self.assertRaises(KeyError):
             d.pop('nonexistent')
 
         assert_that(d.pop('nonexistent', 42), is_(42))
         assert_that(d, has_length(4))
-         
+
         d.setdefault('newly created', 'value')
         assert_that(d, has_entry('newly created', is_('value')))
         assert_that(d, has_length(5))
-        
+
         del d['newly created']
-        
+
         assert_that(list(d.keys()), is_(['bar', 'beep', 'ding', 'foo']))
         assert_that(list(d.values()), is_(['moo', 'beep', 'dong', 'bar']))
-        assert_that(list(d.items()), 
+        assert_that(list(d.items()),
                     is_([('bar', 'moo'), ('beep', 'beep'), ('ding', 'dong'), ('foo', 'bar')]))
-        
+
         i = iter(d)
         assert_that(i, is_not(none()))
         assert_that(d.iterkeys(), is_not(none()))
@@ -268,16 +268,16 @@ class TestDict(unittest.TestCase):
 
         c = d.copy()
         assert_that(d.items(), is_(c.items()))
-        
+
         d.clear()
         assert_that(d, has_length(0))
         assert_that(list(d.keys()), is_([]))
 
         assert_that(c.has_key('beep'), is_(True))
         assert_that('BEEP', is_not(is_in(c)))
-        
+
         assert_that(c.get('nonexistent', 'default'), is_('default'))
-        
+
         class N(dicts.OrderedDict):
             pass
         n = N()
@@ -287,5 +287,3 @@ class TestDict(unittest.TestCase):
         assert_that(c, is_(N))
         assert_that(c, has_length(1))
         assert_that(n, has_length(1))
-
-        

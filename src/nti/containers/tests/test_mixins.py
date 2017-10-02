@@ -80,6 +80,8 @@ class TestMixins(unittest.TestCase):
             c.pop('bar', 'beep', 'ding')
         assert_that(c.pop('key4', None), is_(child))
         assert_that(c.pop('key4', 1), is_(1))
+        with self.assertRaises(KeyError):
+            c.pop('key4')
 
         c.setdefault('key5', [])
         assert_that(c, has_entry('key5', is_([])))
@@ -92,5 +94,7 @@ class TestMixins(unittest.TestCase):
 
         c.update(None)
         c.update({'1': '2'})
-
+        c.update(c)
         assert_that(repr(c), is_("{'1': '2'}"))
+        c.update((('1','2'),('3','4')), five='6')
+

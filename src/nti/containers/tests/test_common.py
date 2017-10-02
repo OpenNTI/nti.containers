@@ -54,5 +54,5 @@ class TestCommon(unittest.TestCase):
         assert_that(discard_p(fs, 3), is_(True))
         assert_that(fs,
                     has_property('s', is_({1, 2})))
-        
+
         assert_that(discard_p(fs, 4), is_(False))

@@ -88,7 +88,7 @@ class TestContainers(unittest.TestCase):
 
         assert_that(name_chooser.chooseName(None, Contained()),
                     is_('Contained'))
-        
+
         # initial names
         c['foo.jpg'] = Contained()
         c['baz'] = Contained()
@@ -119,7 +119,7 @@ class TestContainers(unittest.TestCase):
         c._v_nextid = 0
         name = name_chooser.chooseName('biz.1', None)
         assert_that(name, is_('biz.2'))
-        
+
         c.clear()
         assert_that(c, has_length(0))
 
@@ -140,13 +140,14 @@ class TestContainers(unittest.TestCase):
         chooser.slugify = False
         with self.assertRaises(ImpossibleToMakeSpecificPartSafe):
             chooser.chooseName(u'いちご', obj)
-            
+
         class IFake(interface.Interface):
             title = interface.Attribute("fake")
         chooser.leaf_iface = IFake
         with self.assertRaises(ImpossibleToMakeSpecificPartSafe) as e:
             chooser.chooseName(u'いちご', obj)
-        assert_that(e.exception, has_property('field', is_(interface.Attribute)))
+        assert_that(e.exception, 
+                    has_property('field', is_(interface.Attribute)))
 
     def test_check_lm_container(self):
         class C(_CheckObjectOnSetMixin,
@@ -240,21 +241,24 @@ class TestContainers(unittest.TestCase):
 
         del c['upper']
         assert_that(c.get(None), is_(none()))
-        
+
         c['mykey'] = child
         assert_that(c._delitemf('mykey'), is_(child))
         assert_that(c, has_length(0))
-        
+
         c.clear()
         c['mykey'] = child
         assert_that(list(c.iterkeys()), has_length(1))
         assert_that(list(c.iterkeys('a', 'a')), has_length(0))
-        
+
         c['otherkey'] = 2
         assert_that(list(c.sublocations()), has_length(1))
-        
+
         key = _CaseInsensitiveKey('UPPER')
         assert_that(hash(key), is_(hash('upper')))
+
+        assert_that(key.__gt__(_CaseInsensitiveKey('z')),
+                    is_(False))
 
     def test_case_insensitive_container_invalid_keys(self):
         c = CaseInsensitiveLastModifiedBTreeContainer()
@@ -303,7 +307,7 @@ class TestContainers(unittest.TestCase):
         assert_that(c.get('key'), is_(none()))
         assert_that(getEvents(), has_length(0))
         assert_that(c, has_length(0))
-        
+
         c['key'] = value
         assert_that(c.pop('key', None), is_(value))
         assert_that(c.pop('key', None), is_(none()))
@@ -359,43 +363,43 @@ class TestContainers(unittest.TestCase):
         assert_that(c.get('key'), is_not(none()))
         assert_that(getEvents(), has_length(2))
         assert_that(c, has_length(1))
-        
+
         # clear container
         clearEvents()
         c.clear()
         assert_that(getEvents(), has_length(2))
-        
+
         c['key'] = object()
         clearEvents()
         c.clear(False)
         assert_that(getEvents(), has_length(0))
-         
+
         class Broken(object):
             def __init__(self, state=True):
                 if state:
                     self.__Broken_state__ = {'__name__': 'key',
                                              '__parent__': c}
-        
-        c.clear() 
+
+        c.clear()
         clearEvents()
-        
+
         # test broke objs
         broken = Broken()
         c._setitemf('key', broken)
         del c['key']
         assert_that(getEvents(), has_length(2))
         assert_that(c, has_length(0))
-        
+
         clearEvents()
         broken = Broken(False)
         c._setitemf('key', broken)
         with self.assertRaises(AttributeError):
             del c['key']
-        
+
         clearEvents()
         c.clear()
         c._setitemf('key', broken)
-        
+
         module = dottedname.resolve('nti.containers.contained')
         module.__dict__['fixing_up'] = True
         with self.assertRaises(AttributeError):
@@ -413,7 +417,7 @@ class TestContainers(unittest.TestCase):
                 AcquireObjectsOnReadMixin,
                 CaseInsensitiveLastModifiedBTreeContainer):
             pass
-        
+
         class I(Implicit):
             pass
 
