@@ -96,5 +96,4 @@ class TestMixins(unittest.TestCase):
         c.update({'1': '2'})
         c.update(c)
         assert_that(repr(c), is_("{'1': '2'}"))
-        c.update((('1','2'),('3','4')), five='6')
-
+        c.update((('1', '2'), ('3', '4')), five='6')
