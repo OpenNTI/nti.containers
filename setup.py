@@ -5,6 +5,7 @@ entry_points = {
 }
 
 TESTS_REQUIRE = [
+    'ExtensionClass',
     'nti.testing',
     'zope.testrunner',
 ]
@@ -74,7 +75,7 @@ setup(
             'Sphinx',
             'repoze.sphinx.autointerface',
             'sphinx_rtd_theme',
-        ]
+        ],
     },
     entry_points=entry_points,
 )

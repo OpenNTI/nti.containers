@@ -16,18 +16,25 @@ from hamcrest import has_length
 from hamcrest import assert_that
 does_not = is_not
 
+import fudge
+import pickle
 import unittest
 
+from zope import component
 from zope import interface
 
 from zope.container.contained import Contained as ZContained
+
+from zope.intid.interfaces import IIntIds
 
 import BTrees
 
 from nti.base.interfaces import ILastModified
 
 from nti.containers.datastructures import IntidContainedStorage
+from nti.containers.datastructures import IntidResolvingIterable
 from nti.containers.datastructures import IntidResolvingMappingFacade
+from nti.containers.datastructures import _LengthIntidResolvingMappingFacade
 
 from nti.dublincore.datastructures import CreatedModDateTrackingObject
 
@@ -39,6 +46,33 @@ family64 = BTrees.family64
 @interface.implementer(ILastModified)
 class Contained(CreatedModDateTrackingObject, ZContained):
     pass
+
+
+class TestIntidResolvingIterable(unittest.TestCase):
+
+    layer = SharedConfiguringTestLayer
+
+    def test_iter(self):
+        intids = fudge.Fake()
+        component.getGlobalSiteManager().registerUtility(intids, IIntIds)
+        intids.provides('getObject').raises(TypeError())
+        iterable = IntidResolvingIterable((1, 2))
+        with self.assertRaises(TypeError):
+            list(iterable.__iter__())
+        assert_that(list(iterable.__iter__(True)), is_([]))
+        component.getGlobalSiteManager().unregisterUtility(intids, IIntIds)
+
+        assert_that(iterable, has_length(2))
+
+        intids = fudge.Fake().provides('getObject').raises(KeyError())
+        iterable = IntidResolvingIterable((1, 2))
+        iterable._intids = intids
+        with self.assertRaises(KeyError):
+            list(iterable.__iter__())
+        assert_that(list(iterable.__iter__(True)), is_([]))
+
+        with self.assertRaises(TypeError):
+            pickle.dumps(iterable)
 
 
 class TestMappingFacade(unittest.TestCase):
@@ -78,6 +112,8 @@ class TestMappingFacade(unittest.TestCase):
         assert_that(self.facade, has_length(2))
         repr(self.facade)
 
+        assert_that('a', is_in(self.facade))
+
     def test_get(self):
         facade = self.facade
         # iter unpack
@@ -88,6 +124,22 @@ class TestMappingFacade(unittest.TestCase):
         assert_that(obj, is_(self.utility.data[4]))
 
         assert_that(self.utility.data[4], is_in(facade['b']))
+
+    def test_immutable(self):
+        with self.assertRaises(TypeError):
+            self.facade['k'] = family64.II.TreeSet()
+
+        with self.assertRaises(TypeError):
+            del self.facade['b']
+
+    def test_length_resolving_facade(self):
+        btree = family64.OO.BTree()
+        btree['a'] = family64.II.TreeSet()
+        facade = _LengthIntidResolvingMappingFacade(btree, intids=self.utility,
+                                                    _len=lambda: 1)
+        facade.__parent__ = fudge.Fake().provides('_get_container_mod_time').returns(0)
+        facade._wrap('b', 'c')
+        assert_that(facade, has_length(1))
 
 
 class TestIntidContainedStorage(unittest.TestCase):
@@ -120,9 +172,10 @@ class TestIntidContainedStorage(unittest.TestCase):
         self.storage = self.FixedUtilityIntidContainedStorage()
         self.storage.utility = self.utility
 
-    def test_len(self):
+    def test_storage(self):
         storage = self.storage
         containers = self.storage  # the facade stays in sync
+        assert_that(storage._get_container_mod_time('b'), is_(0))
 
         def assert_len(i):
             assert_that(storage, has_length(i))
@@ -133,6 +186,15 @@ class TestIntidContainedStorage(unittest.TestCase):
         assert_len(1)
         storage.addContainedObjectToContainer(self.utility.data[2], 'b')
         assert_len(2)
+        assert_that(list(storage), has_length(2))
+
+        assert_that(storage._get_intid_for_object_from_utility(self.utility.data[2]),
+                    is_(2))
+
+        assert_that(storage._get_container_mod_time('b'), is_not(0))
+
+        assert_that(storage.containers,
+                    is_(_LengthIntidResolvingMappingFacade))
 
         # As it is the length of the containers, removing from a container doesn't
         # change anything
@@ -146,5 +208,25 @@ class TestIntidContainedStorage(unittest.TestCase):
         storage.popContainer('')
         assert_len(1)
 
+        c = Contained()
+        c.containerId = 'b'
+        self.utility.data[100] = c
+        storage.addContainedObject(c)
+        container = storage.getContainer('b')
+        assert_that(container, has_length(1))
+        storage.deleteEqualContainedObject(c)
+        assert_that(container, has_length(0))
+
+        for func in (storage.keys, storage.values, storage.items):
+            assert_that(list(func()), has_length(1))
+        assert_that('b', is_in(storage))
+
         storage.popContainer('b')
         assert_len(0)
+
+        assert_that(storage.popContainer('b', ()), is_(()))
+        with self.assertRaises(KeyError):
+            storage.popContainer('b')
+
+        whence = object()
+        assert_that(storage._get_intid_for_object(None, whence), is_(whence))
