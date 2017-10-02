@@ -33,6 +33,47 @@ class TestDict(unittest.TestCase):
 
     layer = SharedConfiguringTestLayer
 
+    def test_dict(self):
+        c = dicts.Dict()
+        c['k'] = contained.Contained()
+        c['k'] = contained.Contained()
+        assert_that(c, has_length(1))
+        
+        with self.assertRaises(TypeError):
+            c.update(1,2,3)
+            
+        assert_that(c.pop('z', None), is_(none()))
+        with self.assertRaises(KeyError):
+            c.pop('z')
+        
+        for func in (c.keys, c.values, c.items):
+            assert_that(func(), has_length(1))
+        
+        for func in (c.iteritems, c.iterkeys, c.itervalues):
+            assert_that(list(func()), has_length(1))
+
+        assert_that(list(c), has_length(1))
+
+        cp = c.copy()
+        assert_that(cp, has_length(1))
+        assert_that(cp, is_(dicts.Dict))
+        
+        class N(dicts.Dict):
+            pass
+        n = N()
+        n['k'] = contained.Contained()
+        assert_that(n, has_length(1))
+
+        cp = n.copy()
+        assert_that(cp, is_(N))
+        assert_that(n, has_length(1))
+        assert_that(cp, has_length(1))
+
+        n.popitem()
+        assert_that(n, has_length(0))
+        with self.assertRaises(KeyError):
+            n.popitem()
+        
     def test_lastModified_dict(self):
 
         c = dicts.LastModifiedDict()
@@ -89,7 +130,7 @@ class TestDict(unittest.TestCase):
 
     def test_case_insensitive_dict(self):
         c = dicts.CaseInsensitiveLastModifiedDict()
-
+        assert_that(c.get(None), is_(none()))
         child = contained.Contained()
         c['UPPER'] = child
 
@@ -236,3 +277,15 @@ class TestDict(unittest.TestCase):
         assert_that('BEEP', is_not(is_in(c)))
         
         assert_that(c.get('nonexistent', 'default'), is_('default'))
+        
+        class N(dicts.OrderedDict):
+            pass
+        n = N()
+        n['k'] = contained.Contained()
+        assert_that(n, has_length(1))
+        c = n.copy()
+        assert_that(c, is_(N))
+        assert_that(c, has_length(1))
+        assert_that(n, has_length(1))
+
+        

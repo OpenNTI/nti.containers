@@ -113,11 +113,14 @@ class Dict(Persistent):
     def copy(self):
         if self.__class__ is Dict:
             return Dict(self._data)
+        _len = self._len
         data = self._data
         try:
+            self._len = BTrees.Length.Length()
             self._data = BTrees.OOBTree.OOBTree()
             c = copy.copy(self)
         finally:
+            self._len = _len
             self._data = data
         c.update(self._data)
         return c
@@ -232,28 +235,25 @@ class OrderedDict(Dict):
         if order_set.difference(self._order):
             raise ValueError("Incompatible key set.")
 
-        if hasattr(self._order, "replace"):
-            self._order.replace(order)
-        else:
-            self._order[:] = order
+        self._order.replace(order)
 
     def clear(self):
         super(OrderedDict, self).clear()
-        if hasattr(self._order, "clear"):
-            self._order.clear()
-        else:
-            del self._order[:]
+        self._order.clear()
 
     def copy(self):
         if self.__class__ is OrderedDict:
             return OrderedDict(self)
+        _len = self._len
         data = self._data
         order = self._order
         try:
             self._order = list_type()
+            self._len = BTrees.Length.Length()
             self._data = BTrees.OOBTree.OOBTree()
             c = copy.copy(self)
         finally:
+            self._len = _len
             self._data = data
             self._order = order
         c.update(self)
