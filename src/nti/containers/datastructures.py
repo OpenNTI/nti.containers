@@ -281,7 +281,6 @@ class IntidContainedStorage(Persistent, Contained, Iterable, Container, Sized):
     def _get_intid_for_object(self, contained, when_none=_marker):
         if contained is None and when_none is not _marker:
             return when_none
-
         return self._get_intid_for_object_from_utility(contained)
 
     def _get_intid_for_object_from_utility(self, contained):

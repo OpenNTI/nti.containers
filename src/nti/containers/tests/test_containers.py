@@ -45,6 +45,7 @@ from zope.container.interfaces import INameChooser
 
 from zope.dottedname import resolve as dottedname
 
+from zope.location.interfaces import ILocation
 from zope.location.interfaces import IContained
 
 from nti.base.interfaces import ILastModified
@@ -146,7 +147,7 @@ class TestContainers(unittest.TestCase):
         chooser.leaf_iface = IFake
         with self.assertRaises(ImpossibleToMakeSpecificPartSafe) as e:
             chooser.chooseName(u'いちご', obj)
-        assert_that(e.exception, 
+        assert_that(e.exception,
                     has_property('field', is_(interface.Attribute)))
 
     def test_check_lm_container(self):
@@ -364,10 +365,22 @@ class TestContainers(unittest.TestCase):
         assert_that(getEvents(), has_length(2))
         assert_that(c, has_length(1))
 
+        @interface.implementer(ILocation)
+        class Loc(object):
+            __parent__ = None
+            __name__ = None
+        l = Loc()
+        l.__parent__ = c
+        l.__name__ = 'key2'
+        c['key2'] = l
+        c['key2'] = c['key2']
+
+        with self.assertRaises(ValueError):
+            c[''] = Loc()
         # clear container
         clearEvents()
         c.clear()
-        assert_that(getEvents(), has_length(2))
+        assert_that(getEvents(), has_length(4))
 
         c['key'] = object()
         clearEvents()

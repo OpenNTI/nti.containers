@@ -12,8 +12,8 @@ logger = __import__('logging').getLogger(__name__)
 
 try:
     from UserDict import DictMixin
-    DictMixin = DictMixin # pylint
-except Exception:
+    DictMixin = DictMixin  # pylint
+except Exception:  # pragma: no cover
     class DictMixin(object):
         # Code taken from python2  UserDict.DictMixin
         def __iter__(self):

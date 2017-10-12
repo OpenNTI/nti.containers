@@ -14,6 +14,7 @@ from hamcrest import is_not
 from hamcrest import has_key
 from hamcrest import has_length
 from hamcrest import assert_that
+from hamcrest import has_property
 does_not = is_not
 
 import fudge
@@ -150,14 +151,10 @@ class TestIntidContainedStorage(unittest.TestCase):
 
         data = None
 
-        def getObject(self, key):
-            return self.data[key]
-
         def getId(self, obj):
             for k, v in self.data.items():
                 if obj == v:
                     return k
-            raise KeyError()
 
     class FixedUtilityIntidContainedStorage(IntidContainedStorage):
         utility = None
@@ -171,6 +168,23 @@ class TestIntidContainedStorage(unittest.TestCase):
         self.utility.data = {i: object() for i in range(10)}
         self.storage = self.FixedUtilityIntidContainedStorage()
         self.storage.utility = self.utility
+
+    def test_ctor(self):
+        storage = IntidContainedStorage(family64)
+        assert_that(storage, has_property('family', is_(family64)))
+        
+        intids = fudge.Fake().has_attr(family=family64)
+        component.getGlobalSiteManager().registerUtility(intids, IIntIds)
+
+        storage = IntidContainedStorage()
+        assert_that(storage, has_property('family', is_(family64)))
+
+        component.getGlobalSiteManager().unregisterUtility(intids, IIntIds)
+    
+    def test_len(self):
+        storage = IntidContainedStorage(family64)
+        storage._containers['cid'] = 100
+        assert_that(storage, has_length(1))
 
     def test_storage(self):
         storage = self.storage
@@ -230,3 +244,13 @@ class TestIntidContainedStorage(unittest.TestCase):
 
         whence = object()
         assert_that(storage._get_intid_for_object(None, whence), is_(whence))
+        
+    def test_coverage(self):
+        intids = fudge.Fake().provides('getId').returns(10)
+        component.getGlobalSiteManager().registerUtility(intids, IIntIds)
+
+        storage = IntidContainedStorage(family64)  
+        assert_that(storage._get_intid_for_object_from_utility(object()),
+                    is_(10))
+
+        component.getGlobalSiteManager().unregisterUtility(intids, IIntIds)
