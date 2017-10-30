@@ -6,6 +6,7 @@ entry_points = {
 
 TESTS_REQUIRE = [
     'ExtensionClass',
+    'fudge',
     'nti.testing',
     'zope.testrunner',
 ]
