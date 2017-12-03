@@ -5,7 +5,7 @@ python:
   - 3.6
   - pypy
 script:
-  - coverage run -m zope.testrunner
+  - coverage run -m zope.testrunner --test-path=src
 after_success:
   - coveralls
 notifications:
