@@ -5,8 +5,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
-# disable: accessing protected members, too many methods
-# pylint: disable=W0212,R0904
+# pylint: disable=protected-access,too-many-public-methods,too-many-function-args
+# pylint: disable=unsubscriptable-object,attribute-defined-outside-init
 
 from hamcrest import is_
 from hamcrest import is_in
@@ -224,6 +224,7 @@ class TestIntidContainedStorage(unittest.TestCase):
 
         c = Contained()
         c.containerId = 'b'
+        # pylint: disable=unsupported-assignment-operation
         self.utility.data[100] = c
         storage.addContainedObject(c)
         container = storage.getContainer('b')

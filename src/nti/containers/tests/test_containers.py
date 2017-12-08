@@ -5,8 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
-# disable: accessing protected members, too many methods
-# pylint: disable=W0212,R0904
+# pylint: disable=protected-access,too-many-public-methods,too-many-function-args
 
 from hamcrest import is_
 from hamcrest import none
@@ -142,6 +141,7 @@ class TestContainers(unittest.TestCase):
         with self.assertRaises(ImpossibleToMakeSpecificPartSafe):
             chooser.chooseName(u'いちご', obj)
 
+        # pylint: disable=inherit-non-class
         class IFake(interface.Interface):
             title = interface.Attribute("fake")
         chooser.leaf_iface = IFake

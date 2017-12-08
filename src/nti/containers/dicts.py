@@ -155,17 +155,19 @@ class Dict(Persistent):
         except ValueError:
             raise KeyError('container is empty')
         return (key, self.pop(key))
+
+
 ZC_Dict = Dict  # BWC
 
 
 class MinimalList(CompositeQueue):
-    
+
     def clear(self):
         self._data = ()
-        
+
     def append(self, item):
         return CompositeQueue.put(self, item)
-    
+
     def extend(self, items=()):
         for item in items or ():
             CompositeQueue.put(self, item)
@@ -174,7 +176,7 @@ class MinimalList(CompositeQueue):
         self.clear()
         for item in items or ():
             self.append(item)
-    
+
     def remove(self, item):
         index = -1
         for pivot, v in enumerate(self):
@@ -194,7 +196,7 @@ class OrderedDict(Dict):
     """
     An ordered BTree-based dict-like persistent object that can be safely
     inherited from.
-    
+
     Though not deprecated please use 
     :class:`zope.container.ordered.OrderedContainer`
     """
@@ -336,6 +338,7 @@ class LastModifiedDict(PersistentPropertyHolder,
         super(LastModifiedDict, self).__delitem__(key)
         self.updateLastMod()
 
+
 register = getattr(collections.Mapping, "register")
 register(ZC_Dict)
 
@@ -367,22 +370,22 @@ class CaseInsensitiveLastModifiedDict(LastModifiedDict):
     def __getitem__(self, key):
         return self._data[_tx_key_insen(key)]
 
-    def get(self, key, default=None):
+    def get(self, key, default=None):  # pylint: disable=arguments-differ
         if key is None:
             return default
         return self._data.get(_tx_key_insen(key), default)
 
-    def items(self, key=None):
+    def items(self, key=None):  # pylint: disable=arguments-differ
         if key is not None:
             key = _tx_key_insen(key)
         return ((k.key, v) for k, v in self._data.items(key))
 
-    def keys(self, key=None):
+    def keys(self, key=None):  # pylint: disable=arguments-differ
         if key is not None:
             key = _tx_key_insen(key)
         return (k.key for k in self._data.keys(key))
 
-    def values(self, key=None):
+    def values(self, key=None):  # pylint: disable=arguments-differ
         if key is not None:
             key = _tx_key_insen(key)
         return (v for v in self._data.values(key))

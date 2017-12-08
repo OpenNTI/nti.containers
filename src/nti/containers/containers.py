@@ -133,7 +133,7 @@ class IdGeneratorNameChooser(NameChooser):
     It also uses dots instead of dashes, as the superclass does.
     """
 
-    def chooseName(self, name, obj):
+    def chooseName(self, name, obj): # pylint: disable=arguments-differ
         # Unfortunately, the superclass method is entirely
         # monolithic and we must replace it.
 
@@ -236,6 +236,7 @@ class AbstractNTIIDSafeNameChooser(object):
         # now perform a lookup. The first arg has to be a tuple for whatever
         # reason
         sm = component.getSiteManager()
+        # pylint: disable=no-member
         factory = sm.adapters.lookup((remaining,), INameChooser)
         return factory(self.context).chooseName(name, obj)
 
@@ -358,6 +359,7 @@ class LastModifiedBTreeContainer(DCTimesLastModifiedMixin,
             lifecycleevent.removed(item, self, item.__name__)
         # remove
         del self._SampleContainer__data[key]
+        # pylint: disable=no-member
         l.change(-1)
         # clean containment
         if event and not IBroken.providedBy(item):
@@ -443,6 +445,7 @@ class EventlessLastModifiedBTreeContainer(LastModifiedBTreeContainer):
         return False
 
     def __setitem__(self, key, value):
+        # pylint: disable=unused-variable
         __traceback_info__ = key, value
         self._checkKey(key)
         self._checkValue(value)
@@ -451,7 +454,7 @@ class EventlessLastModifiedBTreeContainer(LastModifiedBTreeContainer):
             # it's not here already. To comply with the containers interface,
             # we cannot add duplicates
             self._setitemf(key, value)
-        # TODO: Should I enforce anything with the __parent__ and __name__ of
+        # Should I enforce anything with the __parent__ and __name__ of
         # the value? For example, parent is not None and __name__ == key?
         # We're probably more generally useful without those constraints,
         # but more specifically useful in certain scenarios with those
@@ -474,7 +477,7 @@ class NOOwnershipLastModifiedBTreeContainer(LastModifiedBTreeContainer):
     A BTreeContainer that does not take ownership of the objects
     """
 
-    def clear(self, event=True):
+    def clear(self, event=True): # pylint: disable=arguments-differ
         for k in list(self.keys()):
             if event:
                 del self[k]
@@ -489,7 +492,7 @@ class NOOwnershipLastModifiedBTreeContainer(LastModifiedBTreeContainer):
         l = self._BTreeContainer__len
         item = self._SampleContainer__data[key]
         del self._SampleContainer__data[key]
-        l.change(-1)
+        l.change(-1) # pylint: disable=no-member
         no_ownership_uncontained(item, self, key)
 
 
@@ -524,6 +527,7 @@ class _CaseInsensitiveKey(object):
 
     def __eq__(self, other):
         try:
+            # pylint: disable=protected-access
             return other is self or other._lower_key == self._lower_key
         except AttributeError:  # pragma: no cover
             return NotImplemented
@@ -533,12 +537,14 @@ class _CaseInsensitiveKey(object):
 
     def __lt__(self, other):
         try:
+            # pylint: disable=protected-access
             return self._lower_key < other._lower_key
         except AttributeError:  # pragma: no cover
             return NotImplemented
 
     def __gt__(self, other):
         try:
+            # pylint: disable=protected-access
             return self._lower_key > other._lower_key
         except AttributeError:  # pragma: no cover
             return NotImplemented
@@ -607,7 +613,7 @@ class CaseInsensitiveLastModifiedBTreeContainer(LastModifiedBTreeContainer):
         item = self[key]
         uncontained(item, self, item.__name__)
         del self._SampleContainer__data[_tx_key_insen(key)]
-        l.change(-1)
+        l.change(-1) # pylint: disable=no-member
 
     def _delitemf(self, key, event=True):
         item = LastModifiedBTreeContainer._delitemf(self, _tx_key_insen(key),
