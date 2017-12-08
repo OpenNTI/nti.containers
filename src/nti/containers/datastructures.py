@@ -46,10 +46,6 @@ from nti.zodb.containers import time_to_64bit_int
 
 logger = __import__('logging').getLogger(__name__)
 
-# Containers specialized to work with intids.
-# Make pylint not complain about "badly implemented container", "Abstract class not referenced"
-# pylint: disable=R0924,R0921
-
 
 @interface.implementer(ILocation)
 class _AbstractIntidResolvingFacade(object):
@@ -99,6 +95,7 @@ class IntidResolvingIterable(_AbstractIntidResolvingFacade,
         else:
             intids = component.getUtility(IIntIds)
         for iid in self.context:
+            # pylint: disable=unused-variable
             __traceback_info__ = iid, self.__parent__, self.__name__
             try:
                 yield intids.getObject(iid)
@@ -185,6 +182,7 @@ class _LengthIntidResolvingMappingFacade(IntidResolvingMappingFacade):
         super(_LengthIntidResolvingMappingFacade, self).__init__(*args, **kwargs)
 
     def _wrap(self, key, val):
+        # pylint: disable=protected-access
         wrapped = super(_LengthIntidResolvingMappingFacade, self)._wrap(key, val)
         wrapped.lastModified = self.__parent__._get_container_mod_time(key)
         return wrapped
@@ -233,6 +231,7 @@ class IntidContainedStorage(Persistent, Contained, Iterable, Container, Sized):
         ol = len(self._containers)
         if ol > 0:
             l.change(ol)
+        # pylint: disable=protected-access,attribute-defined-outside-init
         self._p_changed = True
         return l
 
@@ -243,6 +242,7 @@ class IntidContainedStorage(Persistent, Contained, Iterable, Container, Sized):
         since we cannot store them on the TreeSet itself
         """
         result = self.family.OI.BTree()
+        # pylint: disable=protected-access,attribute-defined-outside-init
         self._p_changed = True
         return result
 
@@ -256,7 +256,7 @@ class IntidContainedStorage(Persistent, Contained, Iterable, Container, Sized):
     def __len__(self):
         return self.__len()
 
-    # TODO: Is this right? Are we sure that the volatile properties added will
+    # Is this right? Are we sure that the volatile properties added will
     # go away when ghosted?
     @CachedProperty
     def containers(self):
@@ -333,6 +333,7 @@ class IntidContainedStorage(Persistent, Contained, Iterable, Container, Sized):
                                                             contained.containerId)
 
     def getContainer(self, containerId, defaultValue=None):
+        # pylint: disable=no-member
         return self.containers.get(containerId, default=defaultValue)
 
     def popContainer(self, containerId, default=_marker):
@@ -364,7 +365,9 @@ class IntidContainedStorage(Persistent, Contained, Iterable, Container, Sized):
         return self._containers.keys()
 
     def values(self):
+        # pylint: disable=no-member
         return self.containers.values()  # unwrapping
 
     def items(self):
+        # pylint: disable=no-member
         return self.containers.items()  # unwrapping
