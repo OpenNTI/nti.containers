@@ -155,9 +155,10 @@ class Dict(Persistent):
         except ValueError:
             raise KeyError('container is empty')
         return (key, self.pop(key))
-
-
 ZC_Dict = Dict  # BWC
+
+register = getattr(collections.Mapping, "register")
+register(ZC_Dict)
 
 
 class MinimalList(CompositeQueue):
@@ -337,10 +338,6 @@ class LastModifiedDict(PersistentPropertyHolder,
     def __delitem__(self, key):
         super(LastModifiedDict, self).__delitem__(key)
         self.updateLastMod()
-
-
-register = getattr(collections.Mapping, "register")
-register(ZC_Dict)
 
 
 class CaseInsensitiveLastModifiedDict(LastModifiedDict):
