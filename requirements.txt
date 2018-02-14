@@ -1,3 +1,3 @@
 -e git+https://github.com/NextThought/nti.base.git@master#egg=nti.base
 -e git+https://github.com/NextThought/nti.ntiids.git@master#egg=nti.ntiids
--e svn+https://repos.nextthought.com/svn/nti-svn/nti.dublincore/trunk#egg=nti.dublincore
+-e git+https://github.com/NextThought/nti.dublincore.git@master#egg=nti.dublincore
