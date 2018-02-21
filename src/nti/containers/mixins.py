@@ -11,8 +11,7 @@ from __future__ import absolute_import
 logger = __import__('logging').getLogger(__name__)
 
 try:
-    from UserDict import DictMixin
-    DictMixin = DictMixin  # pylint
+    from UserDict import DictMixin  # pylint: disable=unused-import
 except ImportError:  # pragma: no cover
     class DictMixin(object):
         # Code taken from python2  UserDict.DictMixin

@@ -426,7 +426,7 @@ class EventlessLastModifiedBTreeContainer(LastModifiedBTreeContainer):
         if isinstance(key, str):
             try:
                 key = text_(key)
-            except UnicodeError:
+            except UnicodeError:  # pragma: no cover
                 raise TypeError('Key could not be converted to unicode')
         elif not isinstance(key, six.text_type):
             raise TypeError("Key must be unicode")
@@ -542,12 +542,6 @@ class _CaseInsensitiveKey(object):
         except AttributeError:  # pragma: no cover
             return NotImplemented
 
-    def __gt__(self, other):
-        try:
-            # pylint: disable=protected-access
-            return self._lower_key > other._lower_key
-        except AttributeError:  # pragma: no cover
-            return NotImplemented
 
 # These work best as plain functions so that the 'self'
 # argument is not captured. The self argument is persistent
