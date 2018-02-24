@@ -27,6 +27,11 @@ Dicts
 
 .. automodule:: nti.containers.dicts
 
+Mixins
+======
+
+.. automodule:: nti.containers.mixins
+
 Subscribers
 ===========
 
