@@ -453,5 +453,4 @@ class TestContainers(unittest.TestCase):
         alternate_parent = P()
         c = c.__of__(alternate_parent)
 
-        #Fails. AcquireObjectsOnReadMixin.__acquire doesn't wrap
         assert_that(c.get('key').__parent__.__parent__, is_(alternate_parent))
