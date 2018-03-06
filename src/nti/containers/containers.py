@@ -265,7 +265,7 @@ class AcquireObjectsOnReadMixin(object):
         self = aq_base(self)
         super(AcquireObjectsOnReadMixin, self).__setitem__(key, value)
     
-    def __acquire(self, result):
+    def _acquire(self, result):
         if IAcquirer.providedBy(result):
             # Make it __of__ this object. But if this object is itself
             # already acquired, and from its own parent, then
@@ -283,13 +283,13 @@ class AcquireObjectsOnReadMixin(object):
     
     def __getitem__(self, key):
         result = super(AcquireObjectsOnReadMixin, self).__getitem__(key)
-        return self.__acquire(result)
+        return self._acquire(result)
     
     def get(self, key, default=None):
         result = super(AcquireObjectsOnReadMixin, self).get(key, default)
         # BTreeFolder doesn't wrap the default
         if result is not default:
-            result = self.__acquire(result)
+            result = self._acquire(result)
         return result
 
 
