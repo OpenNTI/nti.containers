@@ -276,7 +276,9 @@ class AcquireObjectsOnReadMixin(object):
             if     base_self is self \
                 or base_self_parent is getattr(self, '__parent__', None):
                 result = result.__of__(base_self)
-    
+            else:
+                result = result.__of__(self)
+
         return result
     
     def __getitem__(self, key):

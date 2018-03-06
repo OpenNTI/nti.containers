@@ -426,7 +426,7 @@ class TestContainers(unittest.TestCase):
         assert_that(list(c.sublocations()), has_length(2))
 
     def test_aquire(self):
-        class C(Base,
+        class C(Implicit,
                 AcquireObjectsOnReadMixin,
                 CaseInsensitiveLastModifiedBTreeContainer):
             pass
@@ -434,7 +434,23 @@ class TestContainers(unittest.TestCase):
         class I(Implicit):
             pass
 
+        class P(Base,
+                Contained):
+            pass
+
+        c_parent = P()
+        
         c = C()
+        c.__parent__ = c_parent
+
         c['key'] = I()
+        
         assert_that(c.get('key'), is_(I))
         assert_that(c.__getitem__('key'), is_(I))
+
+        assert_that(c.get('key').__parent__.__parent__, is_(c_parent))
+
+        alternate_parent = P()
+        c = c.__of__(alternate_parent)
+
+        assert_that(c.get('key').__parent__.__parent__, is_(alternate_parent))
