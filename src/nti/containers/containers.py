@@ -280,6 +280,7 @@ class AcquireObjectsOnReadMixin(object):
                 result = result.__of__(self)
 
         return result
+    _acquire = __acquire # For subclasses
     
     def __getitem__(self, key):
         result = super(AcquireObjectsOnReadMixin, self).__getitem__(key)
