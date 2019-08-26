@@ -131,6 +131,16 @@ class IdGeneratorNameChooser(NameChooser):
     """
     A name chooser that uses the built-in ID generator to create a name.
     It also uses dots instead of dashes, as the superclass does.
+
+    It is important to not use a name chooser if you need to get to an
+    object in a container without that object. You cannot derive the name
+    user in the container. For example, users with the same root
+    (@mattc and +mattc) will insert objects in a container with arbitrary names
+    (mattc and mattc.123456) such that you would not be able to get to the
+    contained object from one of those users without looking up the object in
+    a secondary container (catalog).
+
+    XXX: Maybe in such cases we use a name chooser that uses the object intid?
     """
 
     def chooseName(self, name, obj): # pylint: disable=arguments-differ
@@ -264,7 +274,7 @@ class AcquireObjectsOnReadMixin(object):
         """
         self = aq_base(self)
         super(AcquireObjectsOnReadMixin, self).__setitem__(key, value)
-    
+
     def _acquire(self, result):
         if IAcquirer.providedBy(result):
             # Make it __of__ this object. But if this object is itself
@@ -280,11 +290,11 @@ class AcquireObjectsOnReadMixin(object):
                 result = result.__of__(self)
 
         return result
-    
+
     def __getitem__(self, key):
         result = super(AcquireObjectsOnReadMixin, self).__getitem__(key)
         return self._acquire(result)
-    
+
     def get(self, key, default=None):
         result = super(AcquireObjectsOnReadMixin, self).get(key, default)
         # BTreeFolder doesn't wrap the default
